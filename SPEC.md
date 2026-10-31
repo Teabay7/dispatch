@@ -87,3 +87,12 @@ Scheduled deliveries, multi-stop orders, promo codes, in-app chat, iOS release, 
 6. Rider KYC requirements and who approves riders.
 7. Minimum withdrawal amount, if any, and who bears transfer fees.
 8. Pilot area and first vehicle types (bike only?).
+## 10. Pilot decisions (confirmed)
+1. Pilot area: Ede, Osun State only. Vehicle type: bikes only.
+2. Pricing: base fee + per-km. Both values are stored in a database settings table.
+3. Commission: percentage stored in the database settings table, changeable by admin without a code change. Value to be decided before launch.
+4. Payment timing: customer pays at point of delivery, via the generated Paystack virtual account. The rider holds the delivery until payment is confirmed by the provider webhook (never by the rider).
+5. Non-payment: unpaid order stays flagged; the customer cannot place new orders until it is settled. Customers who repeatedly abandon unpaid orders are flagged for admin review and may be suspended as customers.
+6. Cancellation: free before a rider accepts. Policy after acceptance: to be decided.
+7. Rider approval: an admin manually approves each rider. Required: ID photo, selfie, vehicle details, plate number. Automated ID verification is a later phase.
+8. Withdrawals: small minimum amount (value to be decided). Transfer fee is deducted from the rider's payout.
