@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "expo": "~58.0.22",
     "expo-constants": "~58.0.14",
     "expo-font": "~58.0.11",
