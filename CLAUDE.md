@@ -1,9 +1,15 @@
 # Dispatch — Project Rules
 
-Read SPEC.md before starting any task. It is the source of truth for product behaviour.
+Read SPEC.md before starting any task. It is the single source of truth for product behaviour.
+
+Precedence when sources disagree:
+1. SPEC.md §10 "Pilot decisions (confirmed)" overrides everything else, including earlier sections of SPEC.md.
+2. The rest of SPEC.md.
+3. This file (operational rules for how to work, not product requirements).
+The original PRD (`Delivery App - PRD.docx`, outside this repo) is background only: where it conflicts with SPEC.md (e.g. Lagos, iOS, vehicle types, automated KYC), SPEC.md wins. If SPEC.md is silent on something, ask; do not fill the gap from the PRD.
 
 ## What we're building
-Dispatch: one mobile app (Android first) where a single account can act as a **customer** (orders deliveries) and/or a **rider** (accepts and delivers orders). Launch market: Nigeria (Lagos pilot).
+Dispatch: one mobile app (Android first) where a single account can act as a **customer** (orders deliveries) and/or a **rider** (accepts and delivers orders). Launch market: Nigeria. Pilot: Ede, Osun State only, bikes only (SPEC.md §10.1).
 
 ## Stack
 - App: React Native + Expo (TypeScript), Expo Router
