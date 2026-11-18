@@ -1,0 +1,10 @@
+#:schema https://supabase.com/schemas/config/v1.json
+# Local/CI Supabase config. Full reference:
+# https://supabase.com/docs/guides/local-development/cli/config
+project_id = "dispatch"
+
+[db]
+port = 54322
+shadow_port = 54320
+# Must match the hosted project's Postgres major version (run `SHOW server_version;` there).
+major_version = 17
