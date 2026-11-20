@@ -79,6 +79,8 @@ Every status change is logged with a timestamp and actor.
 Scheduled deliveries, multi-stop orders, promo codes, in-app chat, iOS release, multiple cities.
 
 ## 9. Open questions (decide before building the relevant phase)
+> Most of these are now answered in §10, and §10 wins wherever it gives an answer. Still open: the actual commission %, base fee and per-km values; the cancellation policy after a rider accepts; the minimum withdrawal amount.
+
 1. Pricing model: flat rate, per-km, or per-km plus base fee?
 2. Commission percentage taken from each order?
 3. When does the customer pay: before pickup or after delivery? Paying before pickup greatly reduces non-payment fraud.
