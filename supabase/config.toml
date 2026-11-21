@@ -8,3 +8,41 @@ port = 54322
 shadow_port = 54320
 # Must match the hosted project's Postgres major version (run `SHOW server_version;` there).
 major_version = 17
+
+[auth]
+enabled = true
+enable_signup = true
+
+# Phone OTP sign-in. Mirrors what must be set on the hosted project (see docs/phone-otp-setup.md).
+[auth.sms]
+enabled = true
+enable_confirmations = true
+max_frequency = "60s"
+
+# Development test numbers: these never send an SMS and always accept the fixed code.
+# Keys are the phone number with country code and without the "+".
+# The same numbers are added on the hosted project; remove them there before launch.
+[auth.sms.test_otp]
+2348000000101 = "123456"
+2348000000102 = "123456"
+2348000000103 = "123456"
+
+# Send SMS hook: Supabase Auth calls the send-sms Edge Function, which sends through Termii.
+# Locally, put SEND_SMS_HOOK_SECRET in supabase/.env (git-ignored) before `supabase start`.
+[auth.hook.send_sms]
+enabled = true
+uri = "http://host.docker.internal:54321/functions/v1/send-sms"
+secrets = "env(SEND_SMS_HOOK_SECRET)"
+
+# Placeholder only. The local CLI turns phone login off unless a built-in provider is
+# enabled, even when the Send SMS hook is on. The hook replaces the provider, so these
+# values are never used and nothing is ever sent through Twilio.
+[auth.sms.twilio]
+enabled = true
+account_sid = "unused-placeholder"
+message_service_sid = "unused-placeholder"
+auth_token = "unused-placeholder"
+
+[functions.send-sms]
+# Called by Supabase Auth with a signed webhook, not a user JWT.
+verify_jwt = false
