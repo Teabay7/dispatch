@@ -25,14 +25,34 @@ jobs:
         with:
           version: 3.2.0
 
+      # config.toml enables the Send SMS hook, whose secret must exist for the CLI to load.
+      # Generate a throwaway one per run; the real secret only lives in the hosted project.
+      - name: Create throwaway local hook secret
+        run: echo "SEND_SMS_HOOK_SECRET=v1,whsec_$(openssl rand -base64 32)" > supabase/.env
+
       - name: Start local database and apply all migrations
         run: supabase db start
 
       - name: Run database tests
         run: supabase test db
 
+  functions:
+    name: Edge Functions (Deno tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: send-sms hook tests
+        working-directory: supabase/functions/send-sms
+        run: deno test
+
   app:
-    name: App (typecheck)
+    name: App (typecheck + unit tests)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -46,6 +66,8 @@ jobs:
       - run: npm ci
 
       - run: npm run typecheck
+
+      - run: npm test
 
   secrets:
     name: Secret scan
