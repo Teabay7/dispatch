@@ -40,3 +40,10 @@ Dispatch: one mobile app (Android first) where a single account can act as a **c
 - Prefer simple, readable code over clever code. Small components, typed props.
 - After each task: say what to test manually, and suggest a commit message.
 - If a requirement is unclear or missing from SPEC.md, ask me instead of guessing.
+
+## Local environment (Mac, low RAM)
+- Container runtime: Colima (not Docker Desktop). Start: colima start --cpu 2 --memory 3. Stop: colima stop.
+- Supabase CLI is installed via Homebrew. Prefer `supabase db start` for DB tests; use `supabase start -x studio,imgproxy,logflare,vector` only for auth/Edge Function work.
+- Stop everything when finished: supabase stop && colima stop.
+- Day-to-day dev uses the hosted Supabase project; CI is the final test gate.
+- Do not suggest Docker Desktop or running the full local stack by default.
