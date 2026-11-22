@@ -27,6 +27,14 @@
     "plugins": [
       "expo-router",
       [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Dispatch uses the camera to take your ID photo and selfie for rider verification.",
+          "photosPermission": "Dispatch lets you choose a photo of your ID for rider verification.",
+          "microphonePermission": false
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",

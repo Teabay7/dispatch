@@ -1,13 +1,16 @@
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
+import { KycStatusCard } from '@/components/KycStatusCard';
 import { Screen } from '@/components/Screen';
 import { colors, spacing } from '@/constants/theme';
+import { kycCardState } from '@/lib/kyc';
 import { formatNigerianPhone } from '@/lib/phone';
 import { useSession } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
+import { useRiderKyc } from '@/lib/useRiderKyc';
 import type { AppRole } from '@/types';
 
 const ROLE_LABELS: Record<AppRole, string> = {
@@ -18,9 +21,36 @@ const ROLE_LABELS: Record<AppRole, string> = {
 
 // Placeholder home until ordering (customer) and the rider dashboard are built.
 export default function HomeScreen() {
-  const { profile, roles } = useSession();
+  const { session, profile, roles, refresh } = useSession();
+  const riderRole = roles.find((r) => r.role === 'rider');
+  const kyc = useRiderKyc(!!riderRole);
   const [signingOut, setSigningOut] = useState(false);
-  const isRider = roles.some((r) => r.role === 'rider');
+  const [addingRider, setAddingRider] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Coming back from the KYC form: show the new status.
+  const reloadKyc = kyc.reload;
+  useFocusEffect(
+    useCallback(() => {
+      reloadKyc();
+    }, [reloadKyc]),
+  );
+
+  async function becomeRider() {
+    const userId = session?.user.id;
+    if (!userId) return;
+    setAddingRider(true);
+    setError(null);
+    const { error: insertError } = await supabase.from('user_roles').insert({ user_id: userId, role: 'rider' });
+    if (insertError) {
+      setAddingRider(false);
+      setError('We could not add the rider role. Check your connection and try again.');
+      return;
+    }
+    await refresh();
+    setAddingRider(false);
+    router.push('/rider-kyc');
+  }
 
   async function signOut() {
     setSigningOut(true);
@@ -32,6 +62,25 @@ export default function HomeScreen() {
     <Screen>
       <Text style={styles.title}>Hello, {profile?.full_name}</Text>
       {profile?.phone ? <Text style={styles.muted}>{formatNigerianPhone(profile.phone)}</Text> : null}
+
+      {riderRole ? (
+        kyc.loading ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : kyc.error ? (
+          <View style={styles.card}>
+            <Text style={styles.errorText}>{kyc.error}</Text>
+            <Button title="Try again" variant="secondary" onPress={kyc.reload} />
+          </View>
+        ) : (
+          <KycStatusCard
+            state={kycCardState(riderRole.status, kyc.details?.kyc_status ?? null)}
+            rejectionReason={kyc.details?.rejection_reason ?? null}
+            submittedAt={kyc.details?.submitted_at ?? null}
+            canOrder={roles.some((r) => r.role === 'customer' && r.status === 'active')}
+            onOpenForm={() => router.push('/rider-kyc')}
+          />
+        )
+      ) : null}
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Your roles</Text>
@@ -45,9 +94,10 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      {isRider ? (
-        <Button title="Rider verification" variant="secondary" onPress={() => router.push('/rider-kyc')} />
+      {!riderRole ? (
+        <Button title="Become a rider" variant="secondary" onPress={becomeRider} loading={addingRider} />
       ) : null}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <View style={styles.spacer} />
       <Button title="Sign out" variant="secondary" onPress={signOut} loading={signingOut} />
@@ -65,5 +115,6 @@ const styles = StyleSheet.create({
   badge: { fontSize: 13, fontWeight: '600', paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: 6 },
   active: { color: colors.success, backgroundColor: '#dcfce7' },
   suspended: { color: colors.danger, backgroundColor: '#fee2e2' },
+  errorText: { fontSize: 14, color: colors.danger },
   spacer: { flex: 1 },
 });
