@@ -68,12 +68,15 @@ export default function ProfileScreen() {
       return;
     }
 
-    // Riders go to the verification screen; it stays reachable while the session refreshes.
-    if (selected.has('rider')) {
-      router.replace('/rider-kyc');
-    }
+    const riderOnly = selected.has('rider') && !selected.has('customer') && !existingRoles.has('customer');
+    // Reload roles first: the verification screen needs to see the new rider role.
     await refresh();
     setSaving(false);
+    // Rider-only users go straight to verification. Users who also chose customer
+    // land on home, where the status card offers verification.
+    if (riderOnly) {
+      router.replace('/rider-kyc');
+    }
   }
 
   return (
