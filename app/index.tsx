@@ -4,6 +4,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { KycStatusCard } from '@/components/KycStatusCard';
+import { OnlineCard } from '@/components/OnlineCard';
 import { Screen } from '@/components/Screen';
 import { colors, spacing } from '@/constants/theme';
 import { kycCardState } from '@/lib/kyc';
@@ -11,6 +12,7 @@ import { formatNigerianPhone } from '@/lib/phone';
 import { useSession } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
 import { useRiderKyc } from '@/lib/useRiderKyc';
+import { useRiderOnline } from '@/lib/useRiderOnline';
 import type { AppRole } from '@/types';
 
 const ROLE_LABELS: Record<AppRole, string> = {
@@ -27,6 +29,18 @@ export default function HomeScreen() {
   const [signingOut, setSigningOut] = useState(false);
   const [addingRider, setAddingRider] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const kycState = riderRole ? kycCardState(riderRole.status, kyc.details?.kyc_status ?? null) : null;
+  // Only an approved rider with an active rider role gets the online toggle.
+  // Uses the last loaded status, so a reload on focus does not stop and restart tracking.
+  const canGoOnline = kycState === 'approved';
+  const reloadKycAfterRefusal = kyc.reload;
+  const onAccessLost = useCallback(() => {
+    // The server refused (suspended, rejected, set offline): show the current status.
+    refresh();
+    reloadKycAfterRefusal();
+  }, [refresh, reloadKycAfterRefusal]);
+  const online = useRiderOnline(canGoOnline, onAccessLost);
 
   // Coming back from the KYC form: show the new status.
   const reloadKyc = kyc.reload;
@@ -54,6 +68,8 @@ export default function HomeScreen() {
 
   async function signOut() {
     setSigningOut(true);
+    // Stop sharing location first (best effort; the server also expires stale riders).
+    if (online.isOnline) await online.goOffline();
     await supabase.auth.signOut();
     // The root layout returns the user to sign-in when the session ends.
   }
@@ -63,7 +79,18 @@ export default function HomeScreen() {
       <Text style={styles.title}>Hello, {profile?.full_name}</Text>
       {profile?.phone ? <Text style={styles.muted}>{formatNigerianPhone(profile.phone)}</Text> : null}
 
-      {riderRole ? (
+      {canGoOnline ? (
+        <OnlineCard
+          phase={online.phase}
+          access={online.access}
+          error={online.error}
+          lastSentAt={online.lastSentAt}
+          sendFailing={online.sendFailing}
+          noFix={online.noFix}
+          onToggle={(value) => (value ? online.goOnline() : online.goOffline())}
+          onFixAccess={online.fixAccess}
+        />
+      ) : riderRole ? (
         kyc.loading ? (
           <ActivityIndicator color={colors.primary} />
         ) : kyc.error ? (
@@ -73,7 +100,7 @@ export default function HomeScreen() {
           </View>
         ) : (
           <KycStatusCard
-            state={kycCardState(riderRole.status, kyc.details?.kyc_status ?? null)}
+            state={kycState ?? 'not_started'}
             rejectionReason={kyc.details?.rejection_reason ?? null}
             submittedAt={kyc.details?.submitted_at ?? null}
             canOrder={roles.some((r) => r.role === 'customer' && r.status === 'active')}
