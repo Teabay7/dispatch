@@ -7,14 +7,14 @@ export type Database = {
           Tables: {
             "app_settings": {
                   Row: {
-                    "base_fee_kobo": number,"commission_percent": number,"id": number,"min_withdrawal_kobo": number,"per_km_rate_kobo": number,"updated_at": string
+                    "base_fee_kobo": number,"commission_percent": number,"id": number,"min_withdrawal_kobo": number,"per_km_rate_kobo": number,"rider_stale_after_minutes": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "base_fee_kobo": number,"commission_percent": number,"id"?: number,"min_withdrawal_kobo": number,"per_km_rate_kobo": number,"updated_at"?: string
+                    "base_fee_kobo": number,"commission_percent": number,"id"?: number,"min_withdrawal_kobo": number,"per_km_rate_kobo": number,"rider_stale_after_minutes"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "base_fee_kobo"?: number,"commission_percent"?: number,"id"?: number,"min_withdrawal_kobo"?: number,"per_km_rate_kobo"?: number,"updated_at"?: string
+                    "base_fee_kobo"?: number,"commission_percent"?: number,"id"?: number,"min_withdrawal_kobo"?: number,"per_km_rate_kobo"?: number,"rider_stale_after_minutes"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -139,14 +139,14 @@ isOneToOne: false
                   ]
                 },"rider_details": {
                   Row: {
-                    "bank_account_ref": string | null,"bike_colour": string,"bike_make_model": string,"created_at": string,"full_name": string,"id_photo_path": string,"is_online": boolean,"kyc_status": Database["public"]['Enums']["kyc_status"],"plate_number": string,"rejection_reason": string | null,"reviewed_at": string | null,"reviewed_by": string | null,"selfie_path": string,"submitted_at": string,"updated_at": string,"user_id": string,"vehicle_type": Database["public"]['Enums']["vehicle_type"]
+                    "bank_account_ref": string | null,"bike_colour": string,"bike_make_model": string,"created_at": string,"full_name": string,"id_photo_path": string,"is_online": boolean,"kyc_status": Database["public"]['Enums']["kyc_status"],"online_since": string | null,"plate_number": string,"rejection_reason": string | null,"reviewed_at": string | null,"reviewed_by": string | null,"selfie_path": string,"submitted_at": string,"updated_at": string,"user_id": string,"vehicle_type": Database["public"]['Enums']["vehicle_type"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "bank_account_ref"?: string | null,"bike_colour": string,"bike_make_model": string,"created_at"?: string,"full_name": string,"id_photo_path": string,"is_online"?: boolean,"kyc_status"?: Database["public"]['Enums']["kyc_status"],"plate_number": string,"rejection_reason"?: string | null,"reviewed_at"?: string | null,"reviewed_by"?: string | null,"selfie_path": string,"submitted_at"?: string,"updated_at"?: string,"user_id": string,"vehicle_type"?: Database["public"]['Enums']["vehicle_type"]
+                    "bank_account_ref"?: string | null,"bike_colour": string,"bike_make_model": string,"created_at"?: string,"full_name": string,"id_photo_path": string,"is_online"?: boolean,"kyc_status"?: Database["public"]['Enums']["kyc_status"],"online_since"?: string | null,"plate_number": string,"rejection_reason"?: string | null,"reviewed_at"?: string | null,"reviewed_by"?: string | null,"selfie_path": string,"submitted_at"?: string,"updated_at"?: string,"user_id": string,"vehicle_type"?: Database["public"]['Enums']["vehicle_type"]
                   }
                   Update: {
-                    "bank_account_ref"?: string | null,"bike_colour"?: string,"bike_make_model"?: string,"created_at"?: string,"full_name"?: string,"id_photo_path"?: string,"is_online"?: boolean,"kyc_status"?: Database["public"]['Enums']["kyc_status"],"plate_number"?: string,"rejection_reason"?: string | null,"reviewed_at"?: string | null,"reviewed_by"?: string | null,"selfie_path"?: string,"submitted_at"?: string,"updated_at"?: string,"user_id"?: string,"vehicle_type"?: Database["public"]['Enums']["vehicle_type"]
+                    "bank_account_ref"?: string | null,"bike_colour"?: string,"bike_make_model"?: string,"created_at"?: string,"full_name"?: string,"id_photo_path"?: string,"is_online"?: boolean,"kyc_status"?: Database["public"]['Enums']["kyc_status"],"online_since"?: string | null,"plate_number"?: string,"rejection_reason"?: string | null,"reviewed_at"?: string | null,"reviewed_by"?: string | null,"selfie_path"?: string,"submitted_at"?: string,"updated_at"?: string,"user_id"?: string,"vehicle_type"?: Database["public"]['Enums']["vehicle_type"]
                   }
                   Relationships: [
                     {
@@ -165,14 +165,14 @@ isOneToOne: true
                   ]
                 },"rider_locations": {
                   Row: {
-                    "lat": number,"lng": number,"rider_id": string,"updated_at": string
+                    "accuracy_m": number | null,"lat": number,"lng": number,"rider_id": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "lat": number,"lng": number,"rider_id": string,"updated_at"?: string
+                    "accuracy_m"?: number | null,"lat": number,"lng": number,"rider_id": string,"updated_at"?: string
                   }
                   Update: {
-                    "lat"?: number,"lng"?: number,"rider_id"?: string,"updated_at"?: string
+                    "accuracy_m"?: number | null,"lat"?: number,"lng"?: number,"rider_id"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -255,7 +255,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "has_active_role":
+            "expire_stale_riders":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"has_active_role":
 { Args: { "r": Database["public"]['Enums']["app_role"] }; Returns: boolean
                            },
 "is_admin":
@@ -266,6 +269,9 @@ isOneToOne: false
                            },
 "rider_role_is_active":
 { Args: { "p_user_id": string }; Returns: boolean
+                           },
+"rider_stale_cutoff":
+{ Args: Record<PropertyKey, never>; Returns: string
                            }
           }
           Enums: {
