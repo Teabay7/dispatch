@@ -7,14 +7,14 @@ export type Database = {
           Tables: {
             "app_settings": {
                   Row: {
-                    "base_fee_kobo": number,"commission_percent": number,"id": number,"min_withdrawal_kobo": number,"per_km_rate_kobo": number,"rider_stale_after_minutes": number,"updated_at": string
+                    "base_fee_kobo": number,"commission_percent": number,"id": number,"per_km_rate_kobo": number,"rider_stale_after_minutes": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "base_fee_kobo": number,"commission_percent": number,"id"?: number,"min_withdrawal_kobo": number,"per_km_rate_kobo": number,"rider_stale_after_minutes"?: number,"updated_at"?: string
+                    "base_fee_kobo": number,"commission_percent": number,"id"?: number,"per_km_rate_kobo": number,"rider_stale_after_minutes"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "base_fee_kobo"?: number,"commission_percent"?: number,"id"?: number,"min_withdrawal_kobo"?: number,"per_km_rate_kobo"?: number,"rider_stale_after_minutes"?: number,"updated_at"?: string
+                    "base_fee_kobo"?: number,"commission_percent"?: number,"id"?: number,"per_km_rate_kobo"?: number,"rider_stale_after_minutes"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -68,26 +68,6 @@ isOneToOne: false
       columns: ["rider_id"]
 isOneToOne: false
       referencedRelation: "profiles"
-      referencedColumns: ["id"]
-    }
-                  ]
-                },"payments": {
-                  Row: {
-                    "amount_kobo": number,"created_at": string,"id": string,"order_id": string,"provider_ref": string | null,"raw_webhook_id": string | null,"status": Database["public"]['Enums']["payment_record_status"],"updated_at": string,"virtual_account": string | null
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "amount_kobo": number,"created_at"?: string,"id"?: string,"order_id": string,"provider_ref"?: string | null,"raw_webhook_id"?: string | null,"status"?: Database["public"]['Enums']["payment_record_status"],"updated_at"?: string,"virtual_account"?: string | null
-                  }
-                  Update: {
-                    "amount_kobo"?: number,"created_at"?: string,"id"?: string,"order_id"?: string,"provider_ref"?: string | null,"raw_webhook_id"?: string | null,"status"?: Database["public"]['Enums']["payment_record_status"],"updated_at"?: string,"virtual_account"?: string | null
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "payments_order_id_fkey"
-      columns: ["order_id"]
-isOneToOne: false
-      referencedRelation: "orders"
       referencedColumns: ["id"]
     }
                   ]
@@ -203,52 +183,6 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"wallet_entries": {
-                  Row: {
-                    "amount_kobo": number,"balance_after_kobo": number,"created_at": string,"id": string,"order_id": string | null,"rider_id": string,"type": Database["public"]['Enums']["wallet_entry_type"]
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "amount_kobo": number,"balance_after_kobo": number,"created_at"?: string,"id"?: string,"order_id"?: string | null,"rider_id": string,"type": Database["public"]['Enums']["wallet_entry_type"]
-                  }
-                  Update: {
-                    "amount_kobo"?: number,"balance_after_kobo"?: number,"created_at"?: string,"id"?: string,"order_id"?: string | null,"rider_id"?: string,"type"?: Database["public"]['Enums']["wallet_entry_type"]
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "wallet_entries_order_id_fkey"
-      columns: ["order_id"]
-isOneToOne: false
-      referencedRelation: "orders"
-      referencedColumns: ["id"]
-    },{
-      foreignKeyName: "wallet_entries_rider_id_fkey"
-      columns: ["rider_id"]
-isOneToOne: false
-      referencedRelation: "profiles"
-      referencedColumns: ["id"]
-    }
-                  ]
-                },"withdrawals": {
-                  Row: {
-                    "amount_kobo": number,"created_at": string,"id": string,"provider_ref": string | null,"rider_id": string,"status": Database["public"]['Enums']["withdrawal_status"],"updated_at": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "amount_kobo": number,"created_at"?: string,"id"?: string,"provider_ref"?: string | null,"rider_id": string,"status"?: Database["public"]['Enums']["withdrawal_status"],"updated_at"?: string
-                  }
-                  Update: {
-                    "amount_kobo"?: number,"created_at"?: string,"id"?: string,"provider_ref"?: string | null,"rider_id"?: string,"status"?: Database["public"]['Enums']["withdrawal_status"],"updated_at"?: string
-                  }
-                  Relationships: [
-                    {
-      foreignKeyName: "withdrawals_rider_id_fkey"
-      columns: ["rider_id"]
-isOneToOne: false
-      referencedRelation: "profiles"
-      referencedColumns: ["id"]
-    }
-                  ]
                 }
           }
           Views: {
@@ -275,7 +209,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "app_role": "customer"|"rider"|"admin","kyc_status": "pending"|"approved"|"rejected","order_status": "created"|"rider_requested"|"accepted"|"picked_up"|"delivered"|"completed"|"cancelled_by_customer"|"cancelled_by_rider"|"no_rider_found"|"payment_failed","payment_record_status": "pending"|"success"|"failed","payment_status": "unpaid"|"awaiting_payment"|"paid"|"failed","role_status": "active"|"suspended","vehicle_type": "bike","wallet_entry_type": "credit"|"withdrawal"|"adjustment","withdrawal_status": "pending"|"processing"|"success"|"failed"|"cancelled"
+            "app_role": "customer"|"rider"|"admin","kyc_status": "pending"|"approved"|"rejected","order_status": "created"|"rider_requested"|"accepted"|"picked_up"|"delivered"|"completed"|"cancelled_by_customer"|"cancelled_by_rider"|"no_rider_found"|"payment_failed","payment_status": "unpaid"|"awaiting_payment"|"paid"|"failed","role_status": "active"|"suspended","vehicle_type": "bike"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -391,7 +325,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "app_role": ["customer", "rider", "admin"],"kyc_status": ["pending", "approved", "rejected"],"order_status": ["created", "rider_requested", "accepted", "picked_up", "delivered", "completed", "cancelled_by_customer", "cancelled_by_rider", "no_rider_found", "payment_failed"],"payment_record_status": ["pending", "success", "failed"],"payment_status": ["unpaid", "awaiting_payment", "paid", "failed"],"role_status": ["active", "suspended"],"vehicle_type": ["bike"],"wallet_entry_type": ["credit", "withdrawal", "adjustment"],"withdrawal_status": ["pending", "processing", "success", "failed", "cancelled"]
+            "app_role": ["customer", "rider", "admin"],"kyc_status": ["pending", "approved", "rejected"],"order_status": ["created", "rider_requested", "accepted", "picked_up", "delivered", "completed", "cancelled_by_customer", "cancelled_by_rider", "no_rider_found", "payment_failed"],"payment_status": ["unpaid", "awaiting_payment", "paid", "failed"],"role_status": ["active", "suspended"],"vehicle_type": ["bike"]
           }
         }
 } as const

@@ -3,7 +3,7 @@
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 
-SELECT plan(14);
+SELECT plan(15);
 
 -- ---------------------------------------------------------------------------
 -- Row Level Security: every table in public must have it, including future ones
@@ -20,8 +20,7 @@ SELECT tables_are(
   'public',
   ARRAY[
     'profiles', 'user_roles', 'rider_details', 'rider_locations', 'orders',
-    'order_events', 'payments', 'wallet_entries', 'withdrawals', 'ratings',
-    'app_settings'
+    'order_events', 'ratings', 'app_settings'
   ],
   'public schema has exactly the expected tables'
 );
@@ -58,25 +57,34 @@ INSERT INTO public.user_roles (user_id, role)
 VALUES ('00000000-0000-0000-0000-0000000000c1', 'customer'),
        ('00000000-0000-0000-0000-0000000000d1', 'rider');
 
-INSERT INTO public.wallet_entries (id, rider_id, type, amount_kobo, balance_after_kobo)
-VALUES ('00000000-0000-0000-0000-0000000000e1',
-        '00000000-0000-0000-0000-0000000000d1', 'credit', 100000, 100000);
-
 -- ---------------------------------------------------------------------------
--- Wallet ledger is append-only, even for the database owner
+-- Payment model: customers pay riders directly (docs/proposals/payment-model-change.md).
+-- No wallet, withdrawals or provider payment records remain. (The three tables
+-- are covered by tables_are above.)
 -- ---------------------------------------------------------------------------
-SELECT throws_ok(
-  $$UPDATE public.wallet_entries SET amount_kobo = 999999
-     WHERE id = '00000000-0000-0000-0000-0000000000e1'$$,
-  'P0001', NULL,
-  'wallet_entries rows cannot be updated'
+SELECT is(
+  (SELECT array_agg(t.typname::text ORDER BY t.typname)
+     FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace
+    WHERE n.nspname = 'public'
+      AND t.typname IN ('payment_record_status', 'wallet_entry_type', 'withdrawal_status')),
+  NULL,
+  'the wallet, withdrawal and provider-payment enums are gone'
 );
 
-SELECT throws_ok(
-  $$DELETE FROM public.wallet_entries
-     WHERE id = '00000000-0000-0000-0000-0000000000e1'$$,
-  'P0001', NULL,
-  'wallet_entries rows cannot be deleted'
+SELECT hasnt_function(
+  'public', 'reject_wallet_mutation',
+  'the wallet append-only trigger function is gone'
+);
+
+SELECT hasnt_column(
+  'public', 'app_settings', 'min_withdrawal_kobo',
+  'app_settings has no minimum withdrawal'
+);
+
+SELECT enum_has_labels(
+  'public', 'payment_status',
+  ARRAY['unpaid', 'awaiting_payment', 'paid', 'failed'],
+  'orders keep their payment_status enum'
 );
 
 -- ---------------------------------------------------------------------------
@@ -84,8 +92,8 @@ SELECT throws_ok(
 -- ---------------------------------------------------------------------------
 SELECT throws_ok(
   $$INSERT INTO public.app_settings
-      (id, base_fee_kobo, per_km_rate_kobo, commission_percent, min_withdrawal_kobo)
-    VALUES (2, 0, 0, 0, 0)$$,
+      (id, base_fee_kobo, per_km_rate_kobo, commission_percent)
+    VALUES (2, 0, 0, 0)$$,
   '23514', NULL,
   'app_settings cannot have a second row'
 );
@@ -137,20 +145,6 @@ SELECT is(
   1::bigint,
   'creating an order logs a created event'
 );
-
--- ---------------------------------------------------------------------------
--- As the real API role
--- ---------------------------------------------------------------------------
-SET LOCAL ROLE authenticated;
-
-SELECT throws_ok(
-  $$INSERT INTO public.wallet_entries (rider_id, type, amount_kobo, balance_after_kobo)
-    VALUES (auth.uid(), 'credit', 100, 100)$$,
-  '42501', NULL,
-  'a client cannot write to the wallet ledger'
-);
-
-RESET ROLE;
 
 -- The migration has no explicit GRANTs and relies on Supabase's default
 -- privileges for the API roles. If a Supabase/CLI upgrade stops granting new
