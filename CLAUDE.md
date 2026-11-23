@@ -15,21 +15,22 @@ Dispatch: one mobile app (Android first) where a single account can act as a **c
 - App: React Native + Expo (TypeScript), Expo Router
 - Backend: Supabase (Postgres, Auth with phone OTP, Realtime, Edge Functions, Row Level Security)
 - Maps/location: Google Maps + Places API (expo-location for rider tracking)
-- Payments: Paystack (dedicated virtual accounts for customer payments, Transfers API for rider withdrawals)
+- Payments: no payment provider in the pilot. Customers pay riders directly by bank transfer; riders pay commission by bank transfer to the company account, recorded by an admin. Paystack is used only for optional bank account-name lookup, behind a setting, with the secret key in Supabase secrets.
 - SMS OTP: Termii
 - Admin panel: simple Next.js web app (later phase)
 
 ## Non-negotiable product rules
 1. One phone number = one account. That account can hold both roles (customer and rider).
 2. Suspension is **per role**. A suspended rider can still order as a customer. A fraudulent customer is suspended as a customer.
-3. Customers NEVER pay riders. All payment goes through the app to the company account.
-4. Riders earn into an in-app wallet. Company commission is deducted per completed order; the remainder is credited to the wallet. Riders can withdraw to their bank account anytime.
+3. Customers pay the rider directly, by bank transfer into the rider's verified bank account, shown in the app only after the rider accepts. The company never holds customer money.
+4. Riders keep the fare. Company commission accrues per counted trip in an append-only commission ledger. After N counted trips (a cycle) the rider must pay the amount owed before going online again; the database enforces this.
 
 ## Money rules (strict)
 - All money logic runs server-side (Edge Functions / database functions). Never trust the client with amounts, balances or payment status.
 - Store money as integers in kobo. Never use floats.
-- The wallet is an append-only **ledger** (entries with amount, type, order_id, balance_after). Never store or edit a bare balance field.
-- Payment webhooks: verify the signature, and make handling idempotent (the same event twice must not credit twice).
+- The commission ledger is append-only (entries with amount, type, order_id, balance_after). Never store or edit a bare balance field; correct mistakes with reversing entries.
+- Only the rider (or an admin resolving a dispute) can mark an order paid, and only through server-side functions. Clients never set payment status directly.
+- Recording the same order or the same bank transfer twice must not count twice (unique keys, idempotent functions).
 - Every money-related change needs tests.
 
 ## Working style
