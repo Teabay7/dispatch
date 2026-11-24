@@ -19,6 +19,13 @@ const valid = {
   plateNumber: 'EDE 123 AA',
 };
 
+test('friendlyKycError: a plate registered to another rider', () => {
+  assert.match(
+    friendlyKycError('duplicate key value violates unique constraint "rider_details_plate_number_unique"'),
+    /already registered/,
+  );
+});
+
 test('a complete form has no errors', () => {
   assert.equal(hasErrors(validateKycForm(valid)), false);
 });

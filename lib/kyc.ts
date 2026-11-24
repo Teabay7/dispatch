@@ -67,6 +67,9 @@ export function canEditKyc(state: KycCardState): boolean {
 export function friendlyKycError(message: string | undefined): string {
   if (!message) return 'We could not submit your details. Check your connection and try again.';
   if (message.includes('active rider role')) return 'Your rider account is suspended, so you cannot submit verification.';
+  if (message.includes('rider_details_plate_number_unique')) {
+    return 'This plate number is already registered to another rider. If the bike is now yours, contact Dispatch support.';
+  }
   if (message.includes('own uploaded files')) return 'One of your photos did not upload. Please retake it and try again.';
   if (message.includes('locked') || message.includes('only be changed when resubmitting')) {
     return 'Your details are under review and cannot be changed right now.';

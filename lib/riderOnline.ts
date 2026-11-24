@@ -148,6 +148,9 @@ export function friendlyOnlineError(error: { code?: string | null; message?: str
   if (/KYC approved with an active rider role to go online/i.test(message)) {
     return 'You cannot go online: your rider verification is not approved or your rider account is suspended.';
   }
+  if (/verified bank account is required to go online/i.test(message)) {
+    return 'You cannot go online until your bank account is approved.';
+  }
   if (isAccessRefused(error)) {
     return 'You are offline. Your phone stopped sharing its location, or your rider account changed. Go online again if you can.';
   }

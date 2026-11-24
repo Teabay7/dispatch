@@ -112,6 +112,10 @@ test('friendlyOnlineError: toggle refused, sending refused, network', () => {
     friendlyOnlineError({ code: 'P0001', message: 'Rider must be KYC approved with an active rider role to go online' }),
     /cannot go online/,
   );
+  assert.match(
+    friendlyOnlineError({ code: 'P0001', message: 'A verified bank account is required to go online' }),
+    /bank account is approved/,
+  );
   assert.match(friendlyOnlineError({ code: '42501', message: 'denied' }), /You are offline/);
   assert.match(friendlyOnlineError({ message: 'TypeError: Network request failed' }), /could not reach/);
 });
