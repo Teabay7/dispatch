@@ -114,7 +114,7 @@ Scheduled deliveries, multi-stop orders, promo codes, in-app chat, iOS release, 
    - After acceptance and before pickup: the customer can cancel, but it counts as a late cancel. After 3 late cancels the customer is flagged for admin review.
    - After pickup: only an admin can cancel. This applies to both customers and riders.
 7. Rider approval: an admin manually approves each rider. Required: ID photo, selfie, vehicle details, plate number. Plate numbers are unique (an admin can override for a genuine change of owner). Automated ID verification is a later phase.
-8. Rider bank account: captured at registration (bank and 10-digit account number, NUBAN-checked). An admin approves every account after a name check against the KYC name.
+8. Rider bank account: captured at registration (bank and account number of exactly 10 digits). An admin approves every account after a name check against the KYC name.
    - The name check is manual first. Paystack account-name lookup is available behind a setting, only once a Paystack secret key is provided in Supabase secrets.
    - Only the server or an admin can write bank accounts. A change creates a new account that must be approved again; the admin phones the rider before approving.
    - A rider cannot go online without a verified account.

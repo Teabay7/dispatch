@@ -11,8 +11,8 @@ Rules the database enforces, whatever you do:
   A rejection **must** have a reason; the rider sees it and can fix and resubmit.
 - **Locking:** riders cannot change their details while `pending` or after approval.
   They cannot change their status or the reason.
-- **Going online:** a rider can only go online with KYC `approved` **and** an active
-  rider role. Rejecting an online rider, or suspending their rider role, takes them
+- **Going online:** a rider can only go online with KYC `approved`, an active rider
+  role **and** a verified bank account (see `rider-bank-account-admin.md`). Rejecting an online rider, or suspending their rider role, takes them
   offline straight away.
 - **Suspension is per role:** suspending the rider role does not affect the same
   person's customer role.
