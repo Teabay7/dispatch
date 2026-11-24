@@ -40,7 +40,9 @@ export function KycStatusCard({ state, rejectionReason, submittedAt, canOrder, o
         </Text>
       ) : null}
 
-      {state === 'approved' ? <Text style={styles.body}>You are approved. Go online from the home screen.</Text> : null}
+      {state === 'approved' ? (
+        <Text style={styles.body}>You are approved. Add a bank account for customers to pay into, then go online.</Text>
+      ) : null}
 
       {state === 'rejected' ? (
         <>

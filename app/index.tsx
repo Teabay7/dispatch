@@ -2,6 +2,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
+import { BankAccountCard } from '@/components/BankAccountCard';
 import { Button } from '@/components/Button';
 import { KycStatusCard } from '@/components/KycStatusCard';
 import { OnlineCard } from '@/components/OnlineCard';
@@ -11,6 +12,7 @@ import { kycCardState } from '@/lib/kyc';
 import { formatNigerianPhone } from '@/lib/phone';
 import { useSession } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
+import { useRiderBankAccount } from '@/lib/useRiderBankAccount';
 import { useRiderKyc } from '@/lib/useRiderKyc';
 import { useRiderOnline } from '@/lib/useRiderOnline';
 import type { AppRole } from '@/types';
@@ -26,28 +28,34 @@ export default function HomeScreen() {
   const { session, profile, roles, refresh } = useSession();
   const riderRole = roles.find((r) => r.role === 'rider');
   const kyc = useRiderKyc(!!riderRole);
+  const bank = useRiderBankAccount(!!riderRole);
   const [signingOut, setSigningOut] = useState(false);
   const [addingRider, setAddingRider] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const kycState = riderRole ? kycCardState(riderRole.status, kyc.details?.kyc_status ?? null) : null;
-  // Only an approved rider with an active rider role gets the online toggle.
-  // Uses the last loaded status, so a reload on focus does not stop and restart tracking.
-  const canGoOnline = kycState === 'approved';
+  // Only an approved rider with an active rider role and a verified bank account
+  // gets the online toggle. Uses the last loaded status, so a reload on focus does
+  // not stop and restart tracking.
+  const canGoOnline = kycState === 'approved' && bank.hasVerified;
   const reloadKycAfterRefusal = kyc.reload;
+  const reloadBankAfterRefusal = bank.reload;
   const onAccessLost = useCallback(() => {
-    // The server refused (suspended, rejected, set offline): show the current status.
+    // The server refused (suspended, rejected, account revoked, set offline): show the current status.
     refresh();
     reloadKycAfterRefusal();
-  }, [refresh, reloadKycAfterRefusal]);
+    reloadBankAfterRefusal();
+  }, [refresh, reloadKycAfterRefusal, reloadBankAfterRefusal]);
   const online = useRiderOnline(canGoOnline, onAccessLost);
 
-  // Coming back from the KYC form: show the new status.
+  // Coming back from the KYC or bank form: show the new status.
   const reloadKyc = kyc.reload;
+  const reloadBank = bank.reload;
   useFocusEffect(
     useCallback(() => {
       reloadKyc();
-    }, [reloadKyc]),
+      reloadBank();
+    }, [reloadKyc, reloadBank]),
   );
 
   async function becomeRider() {
@@ -80,16 +88,32 @@ export default function HomeScreen() {
       {profile?.phone ? <Text style={styles.muted}>{formatNigerianPhone(profile.phone)}</Text> : null}
 
       {canGoOnline ? (
-        <OnlineCard
-          phase={online.phase}
-          access={online.access}
-          error={online.error}
-          lastSentAt={online.lastSentAt}
-          sendFailing={online.sendFailing}
-          noFix={online.noFix}
-          onToggle={(value) => (value ? online.goOnline() : online.goOffline())}
-          onFixAccess={online.fixAccess}
-        />
+        <>
+          <OnlineCard
+            phase={online.phase}
+            access={online.access}
+            error={online.error}
+            lastSentAt={online.lastSentAt}
+            sendFailing={online.sendFailing}
+            noFix={online.noFix}
+            onToggle={(value) => (value ? online.goOnline() : online.goOffline())}
+            onFixAccess={online.fixAccess}
+          />
+          <BankAccountCard state={bank.state} onOpenForm={() => router.push('/rider-bank')} />
+        </>
+      ) : kycState === 'approved' ? (
+        !bank.loaded ? (
+          bank.error ? (
+            <View style={styles.card}>
+              <Text style={styles.errorText}>{bank.error}</Text>
+              <Button title="Try again" variant="secondary" onPress={bank.reload} />
+            </View>
+          ) : (
+            <ActivityIndicator color={colors.primary} />
+          )
+        ) : (
+          <BankAccountCard state={bank.state} onOpenForm={() => router.push('/rider-bank')} />
+        )
       ) : riderRole ? (
         kyc.loading ? (
           <ActivityIndicator color={colors.primary} />
@@ -99,13 +123,19 @@ export default function HomeScreen() {
             <Button title="Try again" variant="secondary" onPress={kyc.reload} />
           </View>
         ) : (
-          <KycStatusCard
-            state={kycState ?? 'not_started'}
-            rejectionReason={kyc.details?.rejection_reason ?? null}
-            submittedAt={kyc.details?.submitted_at ?? null}
-            canOrder={roles.some((r) => r.role === 'customer' && r.status === 'active')}
-            onOpenForm={() => router.push('/rider-kyc')}
-          />
+          <>
+            <KycStatusCard
+              state={kycState ?? 'not_started'}
+              rejectionReason={kyc.details?.rejection_reason ?? null}
+              submittedAt={kyc.details?.submitted_at ?? null}
+              canOrder={roles.some((r) => r.role === 'customer' && r.status === 'active')}
+              onOpenForm={() => router.push('/rider-kyc')}
+            />
+            {/* The bank account can be added (and reviewed) while KYC is under review. */}
+            {kycState === 'pending' && bank.loaded ? (
+              <BankAccountCard state={bank.state} onOpenForm={() => router.push('/rider-bank')} />
+            ) : null}
+          </>
         )
       ) : null}
 

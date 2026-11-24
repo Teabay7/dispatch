@@ -129,7 +129,9 @@ function KycForm({ details }: { details: RiderDetails | null }) {
       setFormError(friendlyKycError(error.message));
       return;
     }
-    goHome();
+    // Registration continues with the bank account customers will pay into.
+    if (resubmitting) goHome();
+    else router.replace('/rider-bank');
   }
 
   return (
