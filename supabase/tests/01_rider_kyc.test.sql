@@ -30,6 +30,12 @@ INSERT INTO public.user_roles (user_id, role) VALUES
   ('00000000-0000-0000-0000-00000000a004', 'customer'),
   ('00000000-0000-0000-0000-00000000a005', 'admin');
 
+-- A price quote for each customer (made by the quote-order Edge Function in real use).
+SELECT public.create_order_quote(u, 'Pickup, Ede', 7.733, 4.433, NULL, 'Drop-off, Ede', 7.742, 4.441, NULL,
+                                 1500, 'routes')
+  FROM unnest(ARRAY['00000000-0000-0000-0000-00000000a003'::uuid,
+                    '00000000-0000-0000-0000-00000000a004'::uuid]) AS u;
+
 INSERT INTO storage.objects (bucket_id, name) VALUES
   ('rider-kyc', '00000000-0000-0000-0000-00000000a002/id-1.jpg'),
   ('rider-kyc', '00000000-0000-0000-0000-00000000a002/selfie-1.jpg'),
@@ -295,9 +301,9 @@ SELECT throws_ok(
 );
 
 SELECT lives_ok(
-  $$INSERT INTO public.orders (customer_id, pickup_address, pickup_lat, pickup_lng,
-      dropoff_address, dropoff_lat, dropoff_lng, price_kobo, commission_kobo)
-    VALUES (auth.uid(), 'A', 7.73, 4.43, 'B', 7.75, 4.45, 0, 0)$$,
+  $$SELECT public.create_order_from_quote(
+      (SELECT id FROM public.order_quotes WHERE customer_id = auth.uid()),
+      'Documents', 'Receiver One', '2348031234567')$$,
   'a suspended rider can still order as a customer'
 );
 
@@ -345,9 +351,9 @@ SELECT is(
 );
 
 SELECT lives_ok(
-  $$INSERT INTO public.orders (customer_id, pickup_address, pickup_lat, pickup_lng,
-      dropoff_address, dropoff_lat, dropoff_lng, price_kobo, commission_kobo)
-    VALUES (auth.uid(), 'A', 7.73, 4.43, 'B', 7.75, 4.45, 0, 0)$$,
+  $$SELECT public.create_order_from_quote(
+      (SELECT id FROM public.order_quotes WHERE customer_id = auth.uid()),
+      'Documents', 'Receiver Two', '2348031234568')$$,
   'a customer-only user can still create orders'
 );
 
