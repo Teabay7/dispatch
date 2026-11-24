@@ -20,7 +20,9 @@ SELECT tables_are(
   'public',
   ARRAY[
     'profiles', 'user_roles', 'rider_details', 'rider_locations', 'orders',
-    'order_events', 'ratings', 'app_settings', 'rider_bank_accounts'
+    'order_events', 'ratings', 'app_settings', 'rider_bank_accounts',
+    'commission_cycles', 'commission_entries', 'company_payment_account',
+    'company_payment_account_changes'
   ],
   'public schema has exactly the expected tables'
 );
@@ -97,8 +99,8 @@ SELECT enum_has_labels(
 -- ---------------------------------------------------------------------------
 SELECT throws_ok(
   $$INSERT INTO public.app_settings
-      (id, base_fee_kobo, per_km_rate_kobo, commission_percent)
-    VALUES (2, 0, 0, 0)$$,
+      (id, base_fee_kobo, per_km_rate_kobo)
+    VALUES (2, 0, 0)$$,
   '23514', NULL,
   'app_settings cannot have a second row'
 );

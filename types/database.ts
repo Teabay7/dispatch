@@ -7,17 +7,109 @@ export type Database = {
           Tables: {
             "app_settings": {
                   Row: {
-                    "base_fee_kobo": number,"commission_percent": number,"id": number,"per_km_rate_kobo": number,"rider_stale_after_minutes": number,"updated_at": string
+                    "base_fee_kobo": number,"commission_bps": number,"commission_trips_per_cycle": number,"id": number,"per_km_rate_kobo": number,"rider_stale_after_minutes": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "base_fee_kobo": number,"commission_percent": number,"id"?: number,"per_km_rate_kobo": number,"rider_stale_after_minutes"?: number,"updated_at"?: string
+                    "base_fee_kobo": number,"commission_bps"?: number,"commission_trips_per_cycle"?: number,"id"?: number,"per_km_rate_kobo": number,"rider_stale_after_minutes"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "base_fee_kobo"?: number,"commission_percent"?: number,"id"?: number,"per_km_rate_kobo"?: number,"rider_stale_after_minutes"?: number,"updated_at"?: string
+                    "base_fee_kobo"?: number,"commission_bps"?: number,"commission_trips_per_cycle"?: number,"id"?: number,"per_km_rate_kobo"?: number,"rider_stale_after_minutes"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     
+                  ]
+                },"commission_cycles": {
+                  Row: {
+                    "cycle_no": number,"due_at": string | null,"id": string,"opened_at": string,"paid_at": string | null,"reference_code": string,"rider_id": string,"status": Database["public"]['Enums']["commission_cycle_status"],"trip_count": number,"trips_required": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cycle_no": number,"due_at"?: string | null,"id"?: string,"opened_at"?: string,"paid_at"?: string | null,"reference_code": string,"rider_id": string,"status"?: Database["public"]['Enums']["commission_cycle_status"],"trip_count"?: number,"trips_required": number
+                  }
+                  Update: {
+                    "cycle_no"?: number,"due_at"?: string | null,"id"?: string,"opened_at"?: string,"paid_at"?: string | null,"reference_code"?: string,"rider_id"?: string,"status"?: Database["public"]['Enums']["commission_cycle_status"],"trip_count"?: number,"trips_required"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "commission_cycles_rider_id_fkey"
+      columns: ["rider_id"]
+isOneToOne: false
+      referencedRelation: "rider_details"
+      referencedColumns: ["user_id"]
+    }
+                  ]
+                },"commission_entries": {
+                  Row: {
+                    "amount_kobo": number,"balance_after_kobo": number,"bank_reference": string | null,"created_at": string,"cycle_id": string,"entry_no": number,"id": string,"note": string | null,"order_id": string | null,"paid_at": string | null,"recorded_by": string | null,"reverses_entry_id": string | null,"rider_id": string,"type": Database["public"]['Enums']["commission_entry_type"]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_kobo": number,"balance_after_kobo": number,"bank_reference"?: string | null,"created_at"?: string,"cycle_id": string,"entry_no": number,"id"?: string,"note"?: string | null,"order_id"?: string | null,"paid_at"?: string | null,"recorded_by"?: string | null,"reverses_entry_id"?: string | null,"rider_id": string,"type": Database["public"]['Enums']["commission_entry_type"]
+                  }
+                  Update: {
+                    "amount_kobo"?: number,"balance_after_kobo"?: number,"bank_reference"?: string | null,"created_at"?: string,"cycle_id"?: string,"entry_no"?: number,"id"?: string,"note"?: string | null,"order_id"?: string | null,"paid_at"?: string | null,"recorded_by"?: string | null,"reverses_entry_id"?: string | null,"rider_id"?: string,"type"?: Database["public"]['Enums']["commission_entry_type"]
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "commission_entries_cycle_id_fkey"
+      columns: ["cycle_id"]
+isOneToOne: false
+      referencedRelation: "commission_cycles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commission_entries_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "orders"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commission_entries_reverses_entry_id_fkey"
+      columns: ["reverses_entry_id"]
+isOneToOne: true
+      referencedRelation: "commission_entries"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commission_entries_rider_id_fkey"
+      columns: ["rider_id"]
+isOneToOne: false
+      referencedRelation: "rider_details"
+      referencedColumns: ["user_id"]
+    }
+                  ]
+                },"company_payment_account": {
+                  Row: {
+                    "account_name": string | null,"account_number": string | null,"bank_name": string | null,"id": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "account_name"?: string | null,"account_number"?: string | null,"bank_name"?: string | null,"id"?: number,"updated_at"?: string
+                  }
+                  Update: {
+                    "account_name"?: string | null,"account_number"?: string | null,"bank_name"?: string | null,"id"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"company_payment_account_changes": {
+                  Row: {
+                    "changed_at": string,"changed_by": string,"changed_by_user": string | null,"field": string,"id": string,"new_value": string | null,"old_value": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "changed_at"?: string,"changed_by": string,"changed_by_user"?: string | null,"field": string,"id"?: string,"new_value"?: string | null,"old_value"?: string | null
+                  }
+                  Update: {
+                    "changed_at"?: string,"changed_by"?: string,"changed_by_user"?: string | null,"field"?: string,"id"?: string,"new_value"?: string | null,"old_value"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "company_payment_account_changes_changed_by_user_fkey"
+      columns: ["changed_by_user"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"order_events": {
                   Row: {
@@ -215,14 +307,51 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "approve_rider_bank_account":
+            "accrue_trip_commission":
+{ Args: { "p_order_id": string }; Returns: boolean
+                           },
+"append_commission_entry":
+{ Args: { "p_amount_kobo": number,"p_bank_reference"?: string,"p_cycle_id": string,"p_note"?: string,"p_order_id"?: string,"p_paid_at"?: string,"p_recorded_by"?: string,"p_reverses_entry_id"?: string,"p_rider_id": string,"p_type": Database["public"]['Enums']["commission_entry_type"] }; Returns: {
+              "amount_kobo": number,
+"balance_after_kobo": number,
+"bank_reference": string | null,
+"created_at": string,
+"cycle_id": string,
+"entry_no": number,
+"id": string,
+"note": string | null,
+"order_id": string | null,
+"paid_at": string | null,
+"recorded_by": string | null,
+"reverses_entry_id": string | null,
+"rider_id": string,
+"type": Database["public"]['Enums']["commission_entry_type"]
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "commission_entries"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"approve_rider_bank_account":
 { Args: { "p_account_id": string,"p_note"?: string,"p_recorded_by": string,"p_verified_name": string }; Returns: undefined
                            },
 "bank_account_name_match":
 { Args: { "p_account_name": string,"p_kyc_name": string }; Returns: Database["public"]['Enums']["bank_name_match"]
                            },
+"commission_for_price":
+{ Args: { "p_bps": number,"p_price_kobo": number }; Returns: number
+                           },
+"commission_reference_code":
+{ Args: { "p_cycle_no": number,"p_rider_id": string }; Returns: string
+                           },
 "expire_stale_riders":
 { Args: Record<PropertyKey, never>; Returns: number
+                           },
+"get_company_payment_account":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "account_name": string,"account_number": string,"bank_name": string
+            }[]
                            },
 "has_active_role":
 { Args: { "r": Database["public"]['Enums']["app_role"] }; Returns: boolean
@@ -233,11 +362,29 @@ isOneToOne: false
 "is_own_kyc_file":
 { Args: { "p_path": string,"p_user_id": string }; Returns: boolean
                            },
+"lock_rider_commission":
+{ Args: { "p_rider_id": string }; Returns: undefined
+                           },
+"order_counts_as_trip":
+{ Args: { "p_payment_status": Database["public"]['Enums']["payment_status"],"p_status": Database["public"]['Enums']["order_status"] }; Returns: boolean
+                           },
+"record_commission_payment":
+{ Args: { "p_amount_kobo": number,"p_bank_reference": string,"p_note": string,"p_paid_at": string,"p_recorded_by": string,"p_reference_code": string }; Returns: number
+                           },
 "reject_rider_bank_account":
 { Args: { "p_account_id": string,"p_reason": string,"p_recorded_by": string }; Returns: undefined
                            },
+"reverse_commission_entry":
+{ Args: { "p_entry_id": string,"p_reason": string,"p_recorded_by": string }; Returns: number
+                           },
 "revoke_rider_bank_account":
 { Args: { "p_account_id": string,"p_reason": string,"p_recorded_by": string }; Returns: undefined
+                           },
+"rider_commission_balance":
+{ Args: { "p_rider_id": string }; Returns: number
+                           },
+"rider_has_commission_due":
+{ Args: { "p_rider_id": string }; Returns: boolean
                            },
 "rider_has_verified_bank_account":
 { Args: { "p_user_id": string }; Returns: boolean
@@ -248,12 +395,21 @@ isOneToOne: false
 "rider_stale_cutoff":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"set_company_payment_account":
+{ Args: { "p_account_name": string,"p_account_number": string,"p_bank_name": string,"p_changed_by": string }; Returns: undefined
+                           },
+"settle_commission_cycles":
+{ Args: { "p_rider_id": string }; Returns: undefined
+                           },
 "submit_rider_bank_account":
 { Args: { "p_account_name": string,"p_account_number": string,"p_bank_name": string }; Returns: string
+                           },
+"take_rider_offline_for_commission":
+{ Args: { "p_rider_id": string }; Returns: undefined
                            }
           }
           Enums: {
-            "app_role": "customer"|"rider"|"admin","bank_account_status": "pending"|"verified"|"rejected"|"withdrawn"|"replaced"|"revoked","bank_name_match": "match"|"partial"|"mismatch","kyc_status": "pending"|"approved"|"rejected","order_status": "created"|"rider_requested"|"accepted"|"picked_up"|"delivered"|"completed"|"cancelled_by_customer"|"cancelled_by_rider"|"no_rider_found"|"payment_failed","payment_status": "unpaid"|"awaiting_payment"|"paid"|"failed","role_status": "active"|"suspended","vehicle_type": "bike"
+            "app_role": "customer"|"rider"|"admin","bank_account_status": "pending"|"verified"|"rejected"|"withdrawn"|"replaced"|"revoked","bank_name_match": "match"|"partial"|"mismatch","commission_cycle_status": "open"|"due"|"paid","commission_entry_type": "commission"|"payment"|"reversal","kyc_status": "pending"|"approved"|"rejected","order_status": "created"|"rider_requested"|"accepted"|"picked_up"|"delivered"|"completed"|"cancelled_by_customer"|"cancelled_by_rider"|"no_rider_found"|"payment_failed","payment_status": "unpaid"|"awaiting_payment"|"paid"|"failed","role_status": "active"|"suspended","vehicle_type": "bike"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -369,7 +525,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "app_role": ["customer", "rider", "admin"],"bank_account_status": ["pending", "verified", "rejected", "withdrawn", "replaced", "revoked"],"bank_name_match": ["match", "partial", "mismatch"],"kyc_status": ["pending", "approved", "rejected"],"order_status": ["created", "rider_requested", "accepted", "picked_up", "delivered", "completed", "cancelled_by_customer", "cancelled_by_rider", "no_rider_found", "payment_failed"],"payment_status": ["unpaid", "awaiting_payment", "paid", "failed"],"role_status": ["active", "suspended"],"vehicle_type": ["bike"]
+            "app_role": ["customer", "rider", "admin"],"bank_account_status": ["pending", "verified", "rejected", "withdrawn", "replaced", "revoked"],"bank_name_match": ["match", "partial", "mismatch"],"commission_cycle_status": ["open", "due", "paid"],"commission_entry_type": ["commission", "payment", "reversal"],"kyc_status": ["pending", "approved", "rejected"],"order_status": ["created", "rider_requested", "accepted", "picked_up", "delivered", "completed", "cancelled_by_customer", "cancelled_by_rider", "no_rider_found", "payment_failed"],"payment_status": ["unpaid", "awaiting_payment", "paid", "failed"],"role_status": ["active", "suspended"],"vehicle_type": ["bike"]
           }
         }
 } as const

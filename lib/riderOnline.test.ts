@@ -116,6 +116,10 @@ test('friendlyOnlineError: toggle refused, sending refused, network', () => {
     friendlyOnlineError({ code: 'P0001', message: 'A verified bank account is required to go online' }),
     /bank account is approved/,
   );
+  assert.match(
+    friendlyOnlineError({ code: 'P0001', message: 'Commission is due: pay it to go online' }),
+    /commission is paid/,
+  );
   assert.match(friendlyOnlineError({ code: '42501', message: 'denied' }), /You are offline/);
   assert.match(friendlyOnlineError({ message: 'TypeError: Network request failed' }), /could not reach/);
 });

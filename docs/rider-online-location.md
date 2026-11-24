@@ -1,9 +1,10 @@
 # Rider online/offline and live location
 
 How it works:
-- An **approved** rider with an **active** rider role and a **verified bank account**
-  (see `rider-bank-account-admin.md`) sees an Online/Offline switch on home. The
-  database refuses everyone else, whatever the app does.
+- An **approved** rider with an **active** rider role, a **verified bank account**
+  (see `rider-bank-account-admin.md`) and **no commission due** (see
+  `commission-admin.md`) sees an Online/Offline switch on home. The database refuses
+  everyone else, whatever the app does.
 - While online, the app sends the rider's position to `rider_locations` (one row per
   rider: the current position only):
   - after moving at least 50 m, at most every 30 s;
