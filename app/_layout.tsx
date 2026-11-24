@@ -76,6 +76,8 @@ function RootNavigator() {
       <Stack.Protected guard={signedIn} redirectTo={start}>
         <Stack.Screen name="rider-kyc" options={{ title: 'Rider verification' }} />
         <Stack.Screen name="rider-bank" options={{ title: 'Bank account' }} />
+        <Stack.Screen name="order/new" options={{ title: 'New delivery' }} />
+        <Stack.Screen name="order/[id]" options={{ title: 'Your delivery' }} />
       </Stack.Protected>
     </Stack>
   );

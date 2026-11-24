@@ -2,6 +2,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
+import { ActiveOrdersCard } from '@/components/ActiveOrdersCard';
 import { BankAccountCard } from '@/components/BankAccountCard';
 import { Button } from '@/components/Button';
 import { CommissionCard } from '@/components/CommissionCard';
@@ -15,6 +16,7 @@ import { useSession } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
 import { useRiderBankAccount } from '@/lib/useRiderBankAccount';
 import { useRiderCommission } from '@/lib/useRiderCommission';
+import { useActiveOrders } from '@/lib/useOrders';
 import { useRiderKyc } from '@/lib/useRiderKyc';
 import { useRiderOnline } from '@/lib/useRiderOnline';
 import type { AppRole } from '@/types';
@@ -32,6 +34,8 @@ export default function HomeScreen() {
   const kyc = useRiderKyc(!!riderRole);
   const bank = useRiderBankAccount(!!riderRole);
   const commission = useRiderCommission(!!riderRole);
+  const isCustomer = roles.some((r) => r.role === 'customer' && r.status === 'active');
+  const activeOrders = useActiveOrders(isCustomer);
   const [signingOut, setSigningOut] = useState(false);
   const [addingRider, setAddingRider] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,12 +63,14 @@ export default function HomeScreen() {
   const reloadKyc = kyc.reload;
   const reloadBank = bank.reload;
   const reloadCommission = commission.reload;
+  const reloadOrders = activeOrders.reload;
   useFocusEffect(
     useCallback(() => {
       reloadKyc();
       reloadBank();
       reloadCommission();
-    }, [reloadKyc, reloadBank, reloadCommission]),
+      reloadOrders();
+    }, [reloadKyc, reloadBank, reloadCommission, reloadOrders]),
   );
 
   async function becomeRider() {
@@ -95,6 +101,15 @@ export default function HomeScreen() {
     <Screen>
       <Text style={styles.title}>Hello, {profile?.full_name}</Text>
       {profile?.phone ? <Text style={styles.muted}>{formatNigerianPhone(profile.phone)}</Text> : null}
+
+      {isCustomer ? (
+        <ActiveOrdersCard
+          orders={activeOrders.orders}
+          error={activeOrders.error}
+          onNewOrder={() => router.push('/order/new')}
+          onOpenOrder={(id) => router.push({ pathname: '/order/[id]', params: { id } })}
+        />
+      ) : null}
 
       {verifiedRider && commission.isDue ? (
         <>
