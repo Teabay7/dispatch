@@ -148,6 +148,9 @@ export function friendlyOnlineError(error: { code?: string | null; message?: str
   if (/KYC approved with an active rider role to go online/i.test(message)) {
     return 'You cannot go online: your rider verification is not approved or your rider account is suspended.';
   }
+  if (/commission is due/i.test(message)) {
+    return 'You cannot go online until your Dispatch commission is paid. The amount and reference are on your home screen.';
+  }
   if (/verified bank account is required to go online/i.test(message)) {
     return 'You cannot go online until your bank account is approved.';
   }
