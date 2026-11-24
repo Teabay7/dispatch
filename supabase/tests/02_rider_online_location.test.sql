@@ -50,6 +50,14 @@ FROM (VALUES
   ('00000000-0000-0000-0000-00000000b006'::uuid, 'approved')
 ) AS u(id, status);
 
+-- Going online needs a verified bank account (20261124100000_rider_bank_account).
+INSERT INTO public.rider_bank_accounts
+  (rider_id, bank_name, account_number, account_name, name_match,
+   status, verified_name, verified_name_match, recorded_by, reviewed_at)
+SELECT user_id, 'Test Bank', lpad(right(user_id::text, 3), 10, '0'), full_name, 'match',
+       'verified', full_name, 'match', 'test fixture', now()
+  FROM public.rider_details WHERE kyc_status = 'approved';
+
 INSERT INTO public.orders
   (customer_id, rider_id, pickup_address, pickup_lat, pickup_lng,
    dropoff_address, dropoff_lat, dropoff_lng, price_kobo, commission_kobo, status)

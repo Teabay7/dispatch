@@ -3,7 +3,7 @@
 BEGIN;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 
-SELECT plan(15);
+SELECT plan(16);
 
 -- ---------------------------------------------------------------------------
 -- Row Level Security: every table in public must have it, including future ones
@@ -20,7 +20,7 @@ SELECT tables_are(
   'public',
   ARRAY[
     'profiles', 'user_roles', 'rider_details', 'rider_locations', 'orders',
-    'order_events', 'ratings', 'app_settings'
+    'order_events', 'ratings', 'app_settings', 'rider_bank_accounts'
   ],
   'public schema has exactly the expected tables'
 );
@@ -79,6 +79,11 @@ SELECT hasnt_function(
 SELECT hasnt_column(
   'public', 'app_settings', 'min_withdrawal_kobo',
   'app_settings has no minimum withdrawal'
+);
+
+SELECT hasnt_column(
+  'public', 'rider_details', 'bank_account_ref',
+  'rider bank details live in rider_bank_accounts, not rider_details'
 );
 
 SELECT enum_has_labels(

@@ -48,7 +48,16 @@ INSERT INTO public.rider_details
 VALUES
   ('00000000-0000-0000-0000-00000000a003', 'Dual Role', 'Honda Ace', 'Black', 'EDE-333-BB',
    '00000000-0000-0000-0000-00000000a003/id-1.jpg', '00000000-0000-0000-0000-00000000a003/selfie-1.jpg',
-   'approved', true);
+   'approved', false);
+
+-- Going online needs a verified bank account (20261124100000_rider_bank_account).
+INSERT INTO public.rider_bank_accounts
+  (rider_id, bank_name, account_number, account_name, name_match,
+   status, verified_name, verified_name_match, recorded_by, reviewed_at)
+VALUES ('00000000-0000-0000-0000-00000000a003', 'Test Bank', '0000000303', 'Dual Role', 'match',
+        'verified', 'DUAL ROLE', 'match', 'test fixture', now());
+UPDATE public.rider_details SET is_online = true
+ WHERE user_id = '00000000-0000-0000-0000-00000000a003';
 
 -- ---------------------------------------------------------------------------
 -- r1: uploads and first submission
@@ -232,6 +241,12 @@ RESET ROLE;
 SELECT set_config('request.jwt.claims', '{}', true);
 UPDATE public.rider_details SET kyc_status = 'approved'
  WHERE user_id = '00000000-0000-0000-0000-00000000a001';
+INSERT INTO public.rider_bank_accounts
+  (rider_id, bank_name, account_number, account_name, name_match,
+   status, verified_name, verified_name_match, recorded_by, reviewed_at)
+SELECT user_id, 'Test Bank', '0000000301', full_name, 'match',
+       'verified', full_name, 'match', 'test fixture', now()
+  FROM public.rider_details WHERE user_id = '00000000-0000-0000-0000-00000000a001';
 
 SELECT set_config('request.jwt.claims',
   '{"sub":"00000000-0000-0000-0000-00000000a001","role":"authenticated"}', true);
