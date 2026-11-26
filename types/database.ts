@@ -5,7 +5,27 @@ export type Database = {
   
   "public": {
           Tables: {
-            "api_usage": {
+            "admin_review_flags": {
+                  Row: {
+                    "created_at": string,"id": string,"reason": string,"resolution_note": string | null,"resolved_at": string | null,"resolved_by": string | null,"role": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"reason": string,"resolution_note"?: string | null,"resolved_at"?: string | null,"resolved_by"?: string | null,"role": string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"reason"?: string,"resolution_note"?: string | null,"resolved_at"?: string | null,"resolved_by"?: string | null,"role"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "admin_review_flags_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"api_usage": {
                   Row: {
                     "created_at": string,"google_calls": number,"id": string,"kind": string,"user_id": string
                   }
@@ -27,17 +47,43 @@ isOneToOne: false
                   ]
                 },"app_settings": {
                   Row: {
-                    "base_fee_kobo": number,"commission_bps": number,"commission_trips_per_cycle": number,"google_calls_per_day": number,"id": number,"max_active_orders_per_customer": number,"max_order_distance_m": number,"per_km_rate_kobo": number,"place_searches_per_hour": number,"quote_valid_minutes": number,"quotes_per_hour": number,"rider_stale_after_minutes": number,"updated_at": string
+                    "base_fee_kobo": number,"commission_bps": number,"commission_trips_per_cycle": number,"customer_late_cancel_flag_after": number,"dispatch_max_attempts": number,"dispatch_max_radius_m": number,"dispatch_search_minutes": number,"google_calls_per_day": number,"id": number,"max_active_orders_per_customer": number,"max_order_distance_m": number,"offer_timeout_seconds": number,"per_km_rate_kobo": number,"place_searches_per_hour": number,"quote_valid_minutes": number,"quotes_per_hour": number,"rider_late_cancel_flag_after": number,"rider_stale_after_minutes": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "base_fee_kobo": number,"commission_bps"?: number,"commission_trips_per_cycle"?: number,"google_calls_per_day"?: number,"id"?: number,"max_active_orders_per_customer"?: number,"max_order_distance_m"?: number,"per_km_rate_kobo": number,"place_searches_per_hour"?: number,"quote_valid_minutes"?: number,"quotes_per_hour"?: number,"rider_stale_after_minutes"?: number,"updated_at"?: string
+                    "base_fee_kobo": number,"commission_bps"?: number,"commission_trips_per_cycle"?: number,"customer_late_cancel_flag_after"?: number,"dispatch_max_attempts"?: number,"dispatch_max_radius_m"?: number,"dispatch_search_minutes"?: number,"google_calls_per_day"?: number,"id"?: number,"max_active_orders_per_customer"?: number,"max_order_distance_m"?: number,"offer_timeout_seconds"?: number,"per_km_rate_kobo": number,"place_searches_per_hour"?: number,"quote_valid_minutes"?: number,"quotes_per_hour"?: number,"rider_late_cancel_flag_after"?: number,"rider_stale_after_minutes"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "base_fee_kobo"?: number,"commission_bps"?: number,"commission_trips_per_cycle"?: number,"google_calls_per_day"?: number,"id"?: number,"max_active_orders_per_customer"?: number,"max_order_distance_m"?: number,"per_km_rate_kobo"?: number,"place_searches_per_hour"?: number,"quote_valid_minutes"?: number,"quotes_per_hour"?: number,"rider_stale_after_minutes"?: number,"updated_at"?: string
+                    "base_fee_kobo"?: number,"commission_bps"?: number,"commission_trips_per_cycle"?: number,"customer_late_cancel_flag_after"?: number,"dispatch_max_attempts"?: number,"dispatch_max_radius_m"?: number,"dispatch_search_minutes"?: number,"google_calls_per_day"?: number,"id"?: number,"max_active_orders_per_customer"?: number,"max_order_distance_m"?: number,"offer_timeout_seconds"?: number,"per_km_rate_kobo"?: number,"place_searches_per_hour"?: number,"quote_valid_minutes"?: number,"quotes_per_hour"?: number,"rider_late_cancel_flag_after"?: number,"rider_stale_after_minutes"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     
+                  ]
+                },"cancellation_events": {
+                  Row: {
+                    "cancelled_by": string | null,"counted": boolean,"created_at": string,"id": string,"order_id": string,"reason": string | null,"recorded_by": string | null,"role": string,"stage": Database["public"]['Enums']["cancel_stage"]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cancelled_by"?: string | null,"counted": boolean,"created_at"?: string,"id"?: string,"order_id": string,"reason"?: string | null,"recorded_by"?: string | null,"role": string,"stage": Database["public"]['Enums']["cancel_stage"]
+                  }
+                  Update: {
+                    "cancelled_by"?: string | null,"counted"?: boolean,"created_at"?: string,"id"?: string,"order_id"?: string,"reason"?: string | null,"recorded_by"?: string | null,"role"?: string,"stage"?: Database["public"]['Enums']["cancel_stage"]
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "cancellation_events_cancelled_by_fkey"
+      columns: ["cancelled_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "cancellation_events_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "orders"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"commission_cycles": {
                   Row: {
@@ -131,6 +177,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"dispatch_offers": {
+                  Row: {
+                    "attempt_no": number,"distance_to_pickup_m": number,"expires_at": string,"id": string,"offered_at": string,"order_id": string,"responded_at": string | null,"rider_id": string,"round_no": number,"status": Database["public"]['Enums']["dispatch_offer_status"]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "attempt_no": number,"distance_to_pickup_m": number,"expires_at": string,"id"?: string,"offered_at"?: string,"order_id": string,"responded_at"?: string | null,"rider_id": string,"round_no": number,"status"?: Database["public"]['Enums']["dispatch_offer_status"]
+                  }
+                  Update: {
+                    "attempt_no"?: number,"distance_to_pickup_m"?: number,"expires_at"?: string,"id"?: string,"offered_at"?: string,"order_id"?: string,"responded_at"?: string | null,"rider_id"?: string,"round_no"?: number,"status"?: Database["public"]['Enums']["dispatch_offer_status"]
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "dispatch_offers_order_id_fkey"
+      columns: ["order_id"]
+isOneToOne: false
+      referencedRelation: "orders"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "dispatch_offers_rider_id_fkey"
+      columns: ["rider_id"]
+isOneToOne: false
+      referencedRelation: "rider_details"
+      referencedColumns: ["user_id"]
+    }
+                  ]
                 },"order_contacts": {
                   Row: {
                     "created_at": string,"order_id": string,"receiver_name": string,"receiver_phone": string
@@ -199,14 +271,14 @@ isOneToOne: false
                   ]
                 },"orders": {
                   Row: {
-                    "base_fee_kobo": number | null,"commission_bps": number | null,"commission_kobo": number,"created_at": string,"customer_id": string,"distance_m": number | null,"distance_source": Database["public"]['Enums']["order_distance_source"] | null,"dropoff_address": string,"dropoff_lat": number,"dropoff_lng": number,"dropoff_place_id": string | null,"dropoff_postcode": string | null,"id": string,"package_description": string | null,"payment_status": Database["public"]['Enums']["payment_status"],"per_km_rate_kobo": number | null,"pickup_address": string,"pickup_lat": number,"pickup_lng": number,"pickup_place_id": string | null,"pickup_postcode": string | null,"price_kobo": number,"priced_with_fallback": boolean | null,"quote_id": string | null,"rider_id": string | null,"status": Database["public"]['Enums']["order_status"],"updated_at": string
+                    "accepted_at": string | null,"arrived_pickup_at": string | null,"base_fee_kobo": number | null,"cancelled_at": string | null,"commission_bps": number | null,"commission_kobo": number,"created_at": string,"customer_id": string,"dispatch_round": number,"dispatch_started_at": string | null,"distance_m": number | null,"distance_source": Database["public"]['Enums']["order_distance_source"] | null,"dropoff_address": string,"dropoff_lat": number,"dropoff_lng": number,"dropoff_place_id": string | null,"dropoff_postcode": string | null,"id": string,"package_description": string | null,"payee_account_id": string | null,"payment_status": Database["public"]['Enums']["payment_status"],"per_km_rate_kobo": number | null,"picked_up_at": string | null,"pickup_address": string,"pickup_lat": number,"pickup_lng": number,"pickup_place_id": string | null,"pickup_postcode": string | null,"price_kobo": number,"priced_with_fallback": boolean | null,"quote_id": string | null,"rider_id": string | null,"status": Database["public"]['Enums']["order_status"],"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "base_fee_kobo"?: number | null,"commission_bps"?: number | null,"commission_kobo": number,"created_at"?: string,"customer_id": string,"distance_m"?: number | null,"distance_source"?: Database["public"]['Enums']["order_distance_source"] | null,"dropoff_address": string,"dropoff_lat": number,"dropoff_lng": number,"dropoff_place_id"?: string | null,"dropoff_postcode"?: string | null,"id"?: string,"package_description"?: string | null,"payment_status"?: Database["public"]['Enums']["payment_status"],"per_km_rate_kobo"?: number | null,"pickup_address": string,"pickup_lat": number,"pickup_lng": number,"pickup_place_id"?: string | null,"pickup_postcode"?: string | null,"price_kobo": number,"priced_with_fallback"?: never,"quote_id"?: string | null,"rider_id"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"updated_at"?: string
+                    "accepted_at"?: string | null,"arrived_pickup_at"?: string | null,"base_fee_kobo"?: number | null,"cancelled_at"?: string | null,"commission_bps"?: number | null,"commission_kobo": number,"created_at"?: string,"customer_id": string,"dispatch_round"?: number,"dispatch_started_at"?: string | null,"distance_m"?: number | null,"distance_source"?: Database["public"]['Enums']["order_distance_source"] | null,"dropoff_address": string,"dropoff_lat": number,"dropoff_lng": number,"dropoff_place_id"?: string | null,"dropoff_postcode"?: string | null,"id"?: string,"package_description"?: string | null,"payee_account_id"?: string | null,"payment_status"?: Database["public"]['Enums']["payment_status"],"per_km_rate_kobo"?: number | null,"picked_up_at"?: string | null,"pickup_address": string,"pickup_lat": number,"pickup_lng": number,"pickup_place_id"?: string | null,"pickup_postcode"?: string | null,"price_kobo": number,"priced_with_fallback"?: never,"quote_id"?: string | null,"rider_id"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"updated_at"?: string
                   }
                   Update: {
-                    "base_fee_kobo"?: number | null,"commission_bps"?: number | null,"commission_kobo"?: number,"created_at"?: string,"customer_id"?: string,"distance_m"?: number | null,"distance_source"?: Database["public"]['Enums']["order_distance_source"] | null,"dropoff_address"?: string,"dropoff_lat"?: number,"dropoff_lng"?: number,"dropoff_place_id"?: string | null,"dropoff_postcode"?: string | null,"id"?: string,"package_description"?: string | null,"payment_status"?: Database["public"]['Enums']["payment_status"],"per_km_rate_kobo"?: number | null,"pickup_address"?: string,"pickup_lat"?: number,"pickup_lng"?: number,"pickup_place_id"?: string | null,"pickup_postcode"?: string | null,"price_kobo"?: number,"priced_with_fallback"?: never,"quote_id"?: string | null,"rider_id"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"updated_at"?: string
+                    "accepted_at"?: string | null,"arrived_pickup_at"?: string | null,"base_fee_kobo"?: number | null,"cancelled_at"?: string | null,"commission_bps"?: number | null,"commission_kobo"?: number,"created_at"?: string,"customer_id"?: string,"dispatch_round"?: number,"dispatch_started_at"?: string | null,"distance_m"?: number | null,"distance_source"?: Database["public"]['Enums']["order_distance_source"] | null,"dropoff_address"?: string,"dropoff_lat"?: number,"dropoff_lng"?: number,"dropoff_place_id"?: string | null,"dropoff_postcode"?: string | null,"id"?: string,"package_description"?: string | null,"payee_account_id"?: string | null,"payment_status"?: Database["public"]['Enums']["payment_status"],"per_km_rate_kobo"?: number | null,"picked_up_at"?: string | null,"pickup_address"?: string,"pickup_lat"?: number,"pickup_lng"?: number,"pickup_place_id"?: string | null,"pickup_postcode"?: string | null,"price_kobo"?: number,"priced_with_fallback"?: never,"quote_id"?: string | null,"rider_id"?: string | null,"status"?: Database["public"]['Enums']["order_status"],"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -214,6 +286,12 @@ isOneToOne: false
       columns: ["customer_id"]
 isOneToOne: false
       referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "orders_payee_account_id_fkey"
+      columns: ["payee_account_id"]
+isOneToOne: false
+      referencedRelation: "rider_bank_accounts"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "orders_quote_id_fkey"
@@ -387,8 +465,14 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "accrue_trip_commission":
+            "accept_offer":
+{ Args: { "p_offer_id": string }; Returns: string
+                           },
+"accrue_trip_commission":
 { Args: { "p_order_id": string }; Returns: boolean
+                           },
+"admin_cancel_order":
+{ Args: { "p_on_behalf_of": string,"p_order_id": string,"p_reason": string,"p_recorded_by": string }; Returns: undefined
                            },
 "append_commission_entry":
 { Args: { "p_amount_kobo": number,"p_bank_reference"?: string,"p_cycle_id": string,"p_note"?: string,"p_order_id"?: string,"p_paid_at"?: string,"p_recorded_by"?: string,"p_reverses_entry_id"?: string,"p_rider_id": string,"p_type": Database["public"]['Enums']["commission_entry_type"] }; Returns: {
@@ -419,6 +503,9 @@ isOneToOne: false
 "bank_account_name_match":
 { Args: { "p_account_name": string,"p_kyc_name": string }; Returns: Database["public"]['Enums']["bank_name_match"]
                            },
+"begin_dispatch":
+{ Args: { "p_order_id": string }; Returns: string
+                           },
 "cancel_order":
 { Args: { "p_order_id": string }; Returns: undefined
                            },
@@ -427,6 +514,9 @@ isOneToOne: false
                            },
 "commission_reference_code":
 { Args: { "p_cycle_no": number,"p_rider_id": string }; Returns: string
+                           },
+"compass_direction":
+{ Args: { "p_from_lat": number,"p_from_lng": number,"p_to_lat": number,"p_to_lng": number }; Returns: string
                            },
 "create_order_from_quote":
 { Args: { "p_package_description": string,"p_quote_id": string,"p_receiver_name": string,"p_receiver_phone": string }; Returns: string
@@ -463,20 +553,47 @@ isOneToOne: false
 "customer_role_is_active":
 { Args: { "p_user_id": string }; Returns: boolean
                            },
+"decline_offer":
+{ Args: { "p_offer_id": string }; Returns: undefined
+                           },
 "distance_between_m":
 { Args: { "p_lat1": number,"p_lat2": number,"p_lng1": number,"p_lng2": number }; Returns: number
                            },
+"end_search_no_rider":
+{ Args: { "p_order_id": string }; Returns: undefined
+                           },
 "expire_stale_riders":
 { Args: Record<PropertyKey, never>; Returns: number
+                           },
+"flag_after_late_cancels":
+{ Args: { "p_role": string,"p_user_id": string }; Returns: undefined
+                           },
+"get_assigned_rider_location":
+{ Args: { "p_order_id": string }; Returns: {
+              "accuracy_m": number,"distance_to_dropoff_m": number,"distance_to_pickup_m": number,"lat": number,"lng": number,"updated_at": string
+            }[]
                            },
 "get_company_payment_account":
 { Args: Record<PropertyKey, never>; Returns: {
               "account_name": string,"account_number": string,"bank_name": string
             }[]
                            },
+"get_my_active_job":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"get_my_offer":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "area_name": string,"direction": string,"distance_to_pickup_m": number,"offer_id": string,"order_id": string,"price_kobo": number,"seconds_left": number,"trip_distance_m": number
+            }[]
+                           },
 "get_order_contact_details":
 { Args: { "p_order_id": string }; Returns: {
               "customer_name": string,"customer_phone": string,"receiver_name": string,"receiver_phone": string
+            }[]
+                           },
+"get_order_rider":
+{ Args: { "p_order_id": string }; Returns: {
+              "account_name": string,"account_number": string,"bank_name": string,"bike_colour": string,"bike_make_model": string,"plate_number": string,"rider_name": string
             }[]
                            },
 "has_active_role":
@@ -488,8 +605,20 @@ isOneToOne: false
 "is_own_kyc_file":
 { Args: { "p_path": string,"p_user_id": string }; Returns: boolean
                            },
+"lock_dispatch":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
 "lock_rider_commission":
 { Args: { "p_rider_id": string }; Returns: undefined
+                           },
+"mark_arrived_at_pickup":
+{ Args: { "p_order_id": string }; Returns: undefined
+                           },
+"mark_picked_up":
+{ Args: { "p_order_id": string }; Returns: undefined
+                           },
+"offer_next_rider":
+{ Args: { "p_order_id": string }; Returns: string
                            },
 "order_counts_as_trip":
 { Args: { "p_payment_status": Database["public"]['Enums']["payment_status"],"p_status": Database["public"]['Enums']["order_status"] }; Returns: boolean
@@ -506,11 +635,23 @@ isOneToOne: false
 "reject_rider_bank_account":
 { Args: { "p_account_id": string,"p_reason": string,"p_recorded_by": string }; Returns: undefined
                            },
+"resolve_review_flag":
+{ Args: { "p_flag_id": string,"p_note": string,"p_recorded_by": string }; Returns: undefined
+                           },
+"retry_dispatch":
+{ Args: { "p_order_id": string }; Returns: undefined
+                           },
 "reverse_commission_entry":
 { Args: { "p_entry_id": string,"p_reason": string,"p_recorded_by": string }; Returns: number
                            },
 "revoke_rider_bank_account":
 { Args: { "p_account_id": string,"p_reason": string,"p_recorded_by": string }; Returns: undefined
+                           },
+"rider_can_take_job":
+{ Args: { "p_rider_id": string }; Returns: boolean
+                           },
+"rider_cancel_job":
+{ Args: { "p_order_id": string,"p_reason": string }; Returns: undefined
                            },
 "rider_commission_balance":
 { Args: { "p_rider_id": string }; Returns: number
@@ -521,17 +662,26 @@ isOneToOne: false
 "rider_has_verified_bank_account":
 { Args: { "p_user_id": string }; Returns: boolean
                            },
+"rider_is_dispatchable":
+{ Args: { "p_rider_id": string }; Returns: boolean
+                           },
 "rider_role_is_active":
 { Args: { "p_user_id": string }; Returns: boolean
                            },
 "rider_stale_cutoff":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"run_dispatch_sweep":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
 "set_company_payment_account":
 { Args: { "p_account_name": string,"p_account_number": string,"p_bank_name": string,"p_changed_by": string }; Returns: undefined
                            },
 "settle_commission_cycles":
 { Args: { "p_rider_id": string }; Returns: undefined
+                           },
+"start_dispatch":
+{ Args: { "p_order_id": string }; Returns: string
                            },
 "submit_rider_bank_account":
 { Args: { "p_account_name": string,"p_account_number": string,"p_bank_name": string }; Returns: string
@@ -541,10 +691,13 @@ isOneToOne: false
                            },
 "use_api_quota":
 { Args: { "p_google_calls": number,"p_kind": string,"p_user_id": string }; Returns: undefined
+                           },
+"withdraw_pending_offers":
+{ Args: { "p_order_id": string }; Returns: undefined
                            }
           }
           Enums: {
-            "app_role": "customer"|"rider"|"admin","bank_account_status": "pending"|"verified"|"rejected"|"withdrawn"|"replaced"|"revoked","bank_name_match": "match"|"partial"|"mismatch","commission_cycle_status": "open"|"due"|"paid","commission_entry_type": "commission"|"payment"|"reversal","kyc_status": "pending"|"approved"|"rejected","order_distance_source": "routes"|"straight_line_fallback","order_status": "created"|"rider_requested"|"accepted"|"picked_up"|"delivered"|"completed"|"cancelled_by_customer"|"cancelled_by_rider"|"no_rider_found"|"payment_failed","payment_status": "unpaid"|"awaiting_payment"|"paid"|"failed","role_status": "active"|"suspended","vehicle_type": "bike"
+            "app_role": "customer"|"rider"|"admin","bank_account_status": "pending"|"verified"|"rejected"|"withdrawn"|"replaced"|"revoked","bank_name_match": "match"|"partial"|"mismatch","cancel_stage": "before_accept"|"after_accept"|"after_pickup","commission_cycle_status": "open"|"due"|"paid","commission_entry_type": "commission"|"payment"|"reversal","dispatch_offer_status": "pending"|"accepted"|"declined"|"expired"|"withdrawn","kyc_status": "pending"|"approved"|"rejected","order_distance_source": "routes"|"straight_line_fallback","order_status": "created"|"rider_requested"|"accepted"|"picked_up"|"delivered"|"completed"|"cancelled_by_customer"|"cancelled_by_rider"|"no_rider_found"|"payment_failed","payment_status": "unpaid"|"awaiting_payment"|"paid"|"failed","role_status": "active"|"suspended","vehicle_type": "bike"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -660,7 +813,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "app_role": ["customer", "rider", "admin"],"bank_account_status": ["pending", "verified", "rejected", "withdrawn", "replaced", "revoked"],"bank_name_match": ["match", "partial", "mismatch"],"commission_cycle_status": ["open", "due", "paid"],"commission_entry_type": ["commission", "payment", "reversal"],"kyc_status": ["pending", "approved", "rejected"],"order_distance_source": ["routes", "straight_line_fallback"],"order_status": ["created", "rider_requested", "accepted", "picked_up", "delivered", "completed", "cancelled_by_customer", "cancelled_by_rider", "no_rider_found", "payment_failed"],"payment_status": ["unpaid", "awaiting_payment", "paid", "failed"],"role_status": ["active", "suspended"],"vehicle_type": ["bike"]
+            "app_role": ["customer", "rider", "admin"],"bank_account_status": ["pending", "verified", "rejected", "withdrawn", "replaced", "revoked"],"bank_name_match": ["match", "partial", "mismatch"],"cancel_stage": ["before_accept", "after_accept", "after_pickup"],"commission_cycle_status": ["open", "due", "paid"],"commission_entry_type": ["commission", "payment", "reversal"],"dispatch_offer_status": ["pending", "accepted", "declined", "expired", "withdrawn"],"kyc_status": ["pending", "approved", "rejected"],"order_distance_source": ["routes", "straight_line_fallback"],"order_status": ["created", "rider_requested", "accepted", "picked_up", "delivered", "completed", "cancelled_by_customer", "cancelled_by_rider", "no_rider_found", "payment_failed"],"payment_status": ["unpaid", "awaiting_payment", "paid", "failed"],"role_status": ["active", "suspended"],"vehicle_type": ["bike"]
           }
         }
 } as const

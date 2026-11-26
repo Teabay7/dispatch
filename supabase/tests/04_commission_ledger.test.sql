@@ -46,14 +46,16 @@ SELECT user_id, 'Test Bank', '00000007' || right(user_id::text, 2), full_name, '
 UPDATE public.rider_details SET is_online = true
  WHERE user_id IN ('00000000-0000-0000-0000-00000000f001', '00000000-0000-0000-0000-00000000f002');
 
--- An order for a rider, already picked up, priced at ₦1,800 (commission ₦270 at 15%).
+-- An order for a rider, priced at ₦1,800 (commission ₦270 at 15%). Created with the
+-- rider already set (a rider can hold only one active job, so not "picked_up" here);
+-- the tests below end each one directly.
 CREATE FUNCTION pg_temp.new_order(p_rider uuid)
 RETURNS uuid LANGUAGE sql AS $$
   INSERT INTO public.orders
     (customer_id, rider_id, pickup_address, pickup_lat, pickup_lng,
      dropoff_address, dropoff_lat, dropoff_lng, price_kobo, commission_kobo, status)
   VALUES ('00000000-0000-0000-0000-00000000f003', p_rider, 'Pickup, Ede', 7.73, 4.43,
-          'Dropoff, Ede', 7.74, 4.44, 180000, public.commission_for_price(180000, 1500), 'picked_up')
+          'Dropoff, Ede', 7.74, 4.44, 180000, public.commission_for_price(180000, 1500), 'created')
   RETURNING id;
 $$;
 
