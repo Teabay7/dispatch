@@ -47,10 +47,11 @@ test('status screens: waiting, on the way, done, stopped', () => {
   for (const s of all) assert.ok(orderStatusView(s).title, s);
 });
 
-test('the customer can cancel only until a rider accepts', () => {
+test('the customer can cancel in the app until pickup', () => {
   assert.equal(canCustomerCancel('created'), true);
   assert.equal(canCustomerCancel('rider_requested'), true);
-  assert.equal(canCustomerCancel('accepted'), false);
+  assert.equal(canCustomerCancel('no_rider_found'), true);
+  assert.equal(canCustomerCancel('accepted'), true);
   assert.equal(canCustomerCancel('picked_up'), false);
   assert.equal(canCustomerCancel('cancelled_by_customer'), false);
   assert.equal(isActiveStatus('picked_up'), true);

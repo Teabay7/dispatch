@@ -56,8 +56,9 @@ export function OnlineCard({
           </Text>
           <View style={styles.notice}>
             <Text style={styles.noticeText}>
-              Keep Dispatch open while you are online. If you close it, lock your phone or switch apps, Dispatch stops
-              sharing your location and sets you offline after a few minutes.
+              Keep Dispatch open while you are online. Delivery requests reach you only while the app is open on your
+              screen and you are online: there are no notifications yet. If you close it, lock your phone or switch apps,
+              Dispatch stops sharing your location and sets you offline after a few minutes.
             </Text>
           </View>
         </>

@@ -78,6 +78,7 @@ function RootNavigator() {
         <Stack.Screen name="rider-bank" options={{ title: 'Bank account' }} />
         <Stack.Screen name="order/new" options={{ title: 'New delivery' }} />
         <Stack.Screen name="order/[id]" options={{ title: 'Your delivery' }} />
+        <Stack.Screen name="job/[id]" options={{ title: 'Your job' }} />
       </Stack.Protected>
     </Stack>
   );

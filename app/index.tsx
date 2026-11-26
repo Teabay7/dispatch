@@ -6,6 +6,8 @@ import { ActiveOrdersCard } from '@/components/ActiveOrdersCard';
 import { BankAccountCard } from '@/components/BankAccountCard';
 import { Button } from '@/components/Button';
 import { CommissionCard } from '@/components/CommissionCard';
+import { CurrentJobCard } from '@/components/CurrentJobCard';
+import { OfferCard } from '@/components/OfferCard';
 import { KycStatusCard } from '@/components/KycStatusCard';
 import { OnlineCard } from '@/components/OnlineCard';
 import { Screen } from '@/components/Screen';
@@ -16,6 +18,8 @@ import { useSession } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
 import { useRiderBankAccount } from '@/lib/useRiderBankAccount';
 import { useRiderCommission } from '@/lib/useRiderCommission';
+import { acceptOffer, declineOffer } from '@/lib/dispatchApi';
+import { useActiveJob, useMyOffer } from '@/lib/useDispatch';
 import { useActiveOrders } from '@/lib/useOrders';
 import { useRiderKyc } from '@/lib/useRiderKyc';
 import { useRiderOnline } from '@/lib/useRiderOnline';
@@ -58,19 +62,49 @@ export default function HomeScreen() {
     reloadCommissionAfterRefusal();
   }, [refresh, reloadKycAfterRefusal, reloadBankAfterRefusal, reloadCommissionAfterRefusal]);
   const online = useRiderOnline(canGoOnline, onAccessLost);
+  const activeJob = useActiveJob(kycState === 'approved');
+  // Offers reach a rider only while the app is open and they are online (no push yet).
+  const myOffer = useMyOffer(canGoOnline && online.phase === 'online' && !activeJob.jobId);
+  const [offerBusy, setOfferBusy] = useState<'accept' | 'decline' | null>(null);
+  const [offerError, setOfferError] = useState<string | null>(null);
+
+  async function respondToOffer(kind: 'accept' | 'decline') {
+    const offer = myOffer.offer;
+    if (!offer) return;
+    setOfferBusy(kind);
+    setOfferError(null);
+    if (kind === 'accept') {
+      const result = await acceptOffer(offer.offer_id);
+      setOfferBusy(null);
+      myOffer.clear();
+      if (result.error !== null) {
+        setOfferError(result.error);
+        return;
+      }
+      await activeJob.reload();
+      router.push({ pathname: '/job/[id]', params: { id: result.data } });
+    } else {
+      const result = await declineOffer(offer.offer_id);
+      setOfferBusy(null);
+      myOffer.clear();
+      if (result.error !== null) setOfferError(result.error);
+    }
+  }
 
   // Coming back from the KYC or bank form: show the new status.
   const reloadKyc = kyc.reload;
   const reloadBank = bank.reload;
   const reloadCommission = commission.reload;
   const reloadOrders = activeOrders.reload;
+  const reloadJob = activeJob.reload;
   useFocusEffect(
     useCallback(() => {
       reloadKyc();
       reloadBank();
       reloadCommission();
       reloadOrders();
-    }, [reloadKyc, reloadBank, reloadCommission, reloadOrders]),
+      reloadJob();
+    }, [reloadKyc, reloadBank, reloadCommission, reloadOrders, reloadJob]),
   );
 
   async function becomeRider() {
@@ -109,6 +143,22 @@ export default function HomeScreen() {
           onNewOrder={() => router.push('/order/new')}
           onOpenOrder={(id) => router.push({ pathname: '/order/[id]', params: { id } })}
         />
+      ) : null}
+
+      {activeJob.jobId ? (
+        <CurrentJobCard onOpen={() => router.push({ pathname: '/job/[id]', params: { id: activeJob.jobId! } })} />
+      ) : null}
+      {myOffer.offer ? (
+        <OfferCard
+          offer={myOffer.offer}
+          fetchedAt={myOffer.fetchedAt}
+          busy={offerBusy}
+          error={offerError}
+          onAccept={() => respondToOffer('accept')}
+          onDecline={() => respondToOffer('decline')}
+        />
+      ) : offerError ? (
+        <Text style={styles.errorText}>{offerError}</Text>
       ) : null}
 
       {verifiedRider && commission.isDue ? (
