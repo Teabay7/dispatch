@@ -51,6 +51,19 @@ jobs:
         working-directory: supabase/functions/send-sms
         run: deno test
 
+      - name: places function tests
+        working-directory: supabase/functions/places
+        run: deno test
+
+      - name: quote-order function tests (and the shared Google client)
+        working-directory: supabase/functions/quote-order
+        run: deno test
+
+      - name: type-check function entry points
+        run: |
+          deno check --config supabase/functions/places/deno.json supabase/functions/places/index.ts
+          deno check --config supabase/functions/quote-order/deno.json supabase/functions/quote-order/index.ts
+
   app:
     name: App (typecheck + unit tests)
     runs-on: ubuntu-latest

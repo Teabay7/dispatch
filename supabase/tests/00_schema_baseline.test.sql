@@ -22,7 +22,8 @@ SELECT tables_are(
     'profiles', 'user_roles', 'rider_details', 'rider_locations', 'orders',
     'order_events', 'ratings', 'app_settings', 'rider_bank_accounts',
     'commission_cycles', 'commission_entries', 'company_payment_account',
-    'company_payment_account_changes'
+    'company_payment_account_changes', 'service_areas', 'api_usage', 'order_quotes',
+    'order_contacts'
   ],
   'public schema has exactly the expected tables'
 );
@@ -116,28 +117,34 @@ SELECT set_config(
   true
 );
 
-SELECT throws_ok(
-  $$INSERT INTO public.orders (customer_id, pickup_address, pickup_lat, pickup_lng,
-      dropoff_address, dropoff_lat, dropoff_lng, price_kobo, commission_kobo)
-    VALUES (auth.uid(), 'A', 7.73, 4.43, 'B', 7.75, 4.45, 50000, 0)$$,
-  'P0001', 'price_kobo and commission_kobo must be set server-side',
-  'a client cannot set the order price'
-);
-
+-- Orders: the server (database owner) can insert; clients can't write at all
+-- (customers create orders from a quote, see 05_customer_orders).
 SELECT lives_ok(
   $$INSERT INTO public.orders (id, customer_id, pickup_address, pickup_lat, pickup_lng,
       dropoff_address, dropoff_lat, dropoff_lng, price_kobo, commission_kobo)
     VALUES ('00000000-0000-0000-0000-0000000000f1', auth.uid(), 'A', 7.73, 4.43,
             'B', 7.75, 4.45, 0, 0)$$,
-  'a customer can create an unpriced order'
+  'the server can insert an order'
+);
+
+SET LOCAL ROLE authenticated;
+
+SELECT throws_ok(
+  $$INSERT INTO public.orders (customer_id, pickup_address, pickup_lat, pickup_lng,
+      dropoff_address, dropoff_lat, dropoff_lng, price_kobo, commission_kobo)
+    VALUES (auth.uid(), 'A', 7.73, 4.43, 'B', 7.75, 4.45, 50000, 0)$$,
+  '42501', NULL,
+  'a client cannot insert an order directly'
 );
 
 SELECT throws_ok(
   $$UPDATE public.orders SET payment_status = 'paid'
      WHERE id = '00000000-0000-0000-0000-0000000000f1'$$,
-  'P0001', 'Cannot change order money or payment fields',
+  '42501', NULL,
   'a client cannot mark an order paid'
 );
+
+RESET ROLE;
 
 SELECT throws_ok(
   $$INSERT INTO public.user_roles (user_id, role) VALUES (auth.uid(), 'admin')$$,
@@ -158,8 +165,9 @@ SELECT is(
 -- public tables automatically, this fails: add explicit GRANTs to a migration.
 SELECT ok(
   has_table_privilege('authenticated', 'public.orders', 'SELECT')
-  AND has_table_privilege('authenticated', 'public.orders', 'INSERT'),
-  'authenticated can select and insert orders (RLS then decides which rows)'
+  AND NOT has_table_privilege('authenticated', 'public.orders', 'INSERT')
+  AND NOT has_table_privilege('authenticated', 'public.orders', 'UPDATE'),
+  'authenticated can select orders (RLS decides which rows) but not write them'
 );
 
 SELECT * FROM finish();

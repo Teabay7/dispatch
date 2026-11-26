@@ -46,3 +46,10 @@ auth_token = "unused-placeholder"
 [functions.send-sms]
 # Called by Supabase Auth with a signed webhook, not a user JWT.
 verify_jwt = false
+
+[functions.places]
+# Called by signed-in app users; Supabase checks the JWT before the function runs.
+verify_jwt = true
+
+[functions.quote-order]
+verify_jwt = true
