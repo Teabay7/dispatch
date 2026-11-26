@@ -29,12 +29,12 @@ Deno.test('autocomplete: restricted to the service area in Nigeria, key in a hea
     }),
   ]);
   const google = createGoogleClient({ apiKey: 'test-key', fetchFn });
-  const result = await google.autocomplete('Ede Poly', 'tok-12345678', AREA);
+  const result = await google.autocomplete('Ede Poly', 'test-session', AREA);
   assertEquals(result, [{ placeId: 'p1', mainText: 'Ede Poly', secondaryText: 'Ede' }]);
   const body = JSON.parse(String(captured[0].init.body));
   assertEquals(body.includedRegionCodes, ['ng']);
   assertEquals(body.locationRestriction.circle, { center: { latitude: 7.7333, longitude: 4.4333 }, radius: 10000 });
-  assertEquals(body.sessionToken, 'tok-12345678');
+  assertEquals(body.sessionToken, 'test-session');
   assertEquals((captured[0].init.headers as Record<string, string>)['X-Goog-Api-Key'], 'test-key');
   assertEquals(captured[0].url.includes('test-key'), false);
 });
@@ -43,9 +43,9 @@ Deno.test('place details: field mask, session token, name + address', async () =
   const { fetchFn, captured } = fakeFetch([
     ok({ displayName: { text: 'Federal Polytechnic Ede' }, formattedAddress: 'Ede-Osogbo Rd, Ede', location: { latitude: 7.745, longitude: 4.445 } }),
   ]);
-  const place = await createGoogleClient({ apiKey: 'k', fetchFn }).placeDetails('p1', 'tok-12345678');
+  const place = await createGoogleClient({ apiKey: 'k', fetchFn }).placeDetails('p1', 'test-session');
   assertEquals(place, { address: 'Federal Polytechnic Ede, Ede-Osogbo Rd, Ede', lat: 7.745, lng: 4.445, placeId: 'p1' });
-  assertEquals(captured[0].url, 'https://places.googleapis.com/v1/places/p1?sessionToken=tok-12345678');
+  assertEquals(captured[0].url, 'https://places.googleapis.com/v1/places/p1?sessionToken=test-session');
   assertEquals((captured[0].init.headers as Record<string, string>)['X-Goog-FieldMask'], 'formattedAddress,location,displayName');
 });
 
