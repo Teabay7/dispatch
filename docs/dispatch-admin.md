@@ -256,6 +256,9 @@ A new flag opens if they keep cancelling, because the count isn't reset.
 Google setup isn't needed. Test orders are inserted directly in the SQL Editor.
 
 **Before you start:**
+0. **Run the app from this branch** until it's merged: `git checkout feat/dispatch`,
+   then `npx expo start`. On `main`, the order screen still shows the old "A rider is
+   on the way", with no rider card, no **Search again** and no late cancel.
 1. **Labels:** everything below is labelled **TEST** and placed inside the **Ede
    service area**. Run §7 when you're done.
 2. **Sign in each test phone number in the app once first**, so the user exists:
@@ -317,7 +320,7 @@ Riders put online in SQL go **stale after `rider_stale_after_minutes` (5)**, and
 stale sweep sets them offline. Re-run 5a to refresh them, or use phones in Ede.
 
 **If a rider isn't dispatchable,** the usual causes are:
-- commission due: see the commission guide, Script B;
+- commission due: see the commission guide §3 (amounts owed) and §5 (record a payment);
 - an active job still open;
 - the location is stale.
 
@@ -383,7 +386,9 @@ UPDATE public.orders SET payment_status = 'paid', status = 'delivered' WHERE id 
 This cancels every TEST order that hasn't ended and takes the TEST riders offline,
 which also deletes their location. Nothing is deleted from append-only tables:
 offers, cancellation records and ledger entries stay as history. For the riders'
-commission from delivered test orders, use the commission guide's Script B.
+commission from delivered test orders, reverse each entry with the commission guide
+§6 ("Reverse a mistaken entry"). The trip still counts towards the rider's cycle; only
+the money is reversed.
 
 ```sql
 DO $$

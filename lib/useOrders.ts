@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { ACTIVE_STATUSES, isActiveStatus, type OrderStatus } from '@/lib/orders';
+import { HOME_ORDER_STATUSES, isActiveStatus, type OrderStatus } from '@/lib/orders';
 import { useSession } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
 
@@ -36,7 +36,7 @@ export function useActiveOrders(enabled: boolean) {
       .from('orders')
       .select(ORDER_COLUMNS)
       .eq('customer_id', userId)
-      .in('status', ACTIVE_STATUSES)
+      .in('status', HOME_ORDER_STATUSES)
       .order('created_at', { ascending: false });
     if (queryError) {
       setError('We could not load your orders. Check your connection and try again.');

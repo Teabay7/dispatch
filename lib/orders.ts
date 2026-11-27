@@ -21,6 +21,12 @@ export function isActiveStatus(status: OrderStatus): boolean {
 }
 
 /**
+ * Orders listed on home: the active ones, plus searches that found no rider, so the
+ * customer can always get back to "Search again" or cancel.
+ */
+export const HOME_ORDER_STATUSES: OrderStatus[] = [...ACTIVE_STATUSES, 'no_rider_found'];
+
+/**
  * The customer can cancel in the app until pickup (SPEC 10.6): free until a rider
  * accepts, counted as a late cancel after that. After pickup only support can.
  */
