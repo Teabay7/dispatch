@@ -27,9 +27,9 @@ doesn't depend on anyone's phone staying open:
   - a rider can have only **one active job**, enforced by a database index.
 
   Accepting also fixes the rider's verified bank account as the order's payee.
-- **Job steps:** the rider marks **arrived at pickup**, then **picked up**. Delivery
-  and payment confirmation come in a later feature; for now, move the order on in SQL
-  (§6).
+- **Job steps:** the rider marks **arrived at pickup**, then **picked up**. Arrival at
+  the drop-off, payment and handover are in the delivery and payment guide
+  (`docs/delivery-payment-admin.md`).
 - **Cancelling** (SPEC §10.6):
   - **Customer:** free until a rider accepts. After acceptance and before pickup it's
     allowed but **counted**, and `customer_late_cancel_flag_after` (3) late cancels
@@ -256,9 +256,6 @@ A new flag opens if they keep cancelling, because the count isn't reset.
 Google setup isn't needed. Test orders are inserted directly in the SQL Editor.
 
 **Before you start:**
-0. **Run the app from this branch** until it's merged: `git checkout feat/dispatch`,
-   then `npx expo start`. On `main`, the order screen still shows the old "A rider is
-   on the way", with no rider card, no **Search again** and no late cancel.
 1. **Labels:** everything below is labelled **TEST** and placed inside the **Ede
    service area**. Run §7 when you're done.
 2. **Sign in each test phone number in the app once first**, so the user exists:
@@ -371,15 +368,12 @@ END $$;
 - **A timeout:** just don't answer. After 30 s, the next sweep (within 10 s) moves the
   offer on.
 
-## 6. Finishing a TEST job (until delivery confirmation exists)
+## 6. Finishing a TEST job
 
-```sql
--- Show the customer the rider's bank details (payment due)
-UPDATE public.orders SET payment_status = 'awaiting_payment' WHERE id = '<order id>';
-
--- Delivered and paid: this also charges the rider's commission (the commission guide)
-UPDATE public.orders SET payment_status = 'paid', status = 'delivered' WHERE id = '<order id>';
-```
+Use the delivery and payment guide (`docs/delivery-payment-admin.md` §5b–5e): the rider
+arrives at the drop-off, confirms payment and hands over with the customer's PIN. Don't
+set `payment_status` or `status` by hand: an order moved to "awaiting payment" that way
+has no arrival time, so the rider can never mark it unpaid.
 
 ## 7. Clean up TEST data
 
