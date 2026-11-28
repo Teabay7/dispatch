@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import type { PaymentStatus } from '@/lib/delivery';
 import { HOME_ORDER_STATUSES, isActiveStatus, type OrderStatus } from '@/lib/orders';
 import { useSession } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
@@ -14,12 +15,15 @@ export type OrderSummary = {
   dropoff_address: string;
   package_description: string | null;
   created_at: string;
+  payment_status: PaymentStatus;
+  customer_reported_paid_at: string | null;
+  payment_reference: string | null;
 };
 
 export type OrderContact = { receiver_name: string; receiver_phone: string };
 
 const ORDER_COLUMNS =
-  'id, status, price_kobo, distance_m, priced_with_fallback, pickup_address, dropoff_address, package_description, created_at';
+  'id, status, price_kobo, distance_m, priced_with_fallback, pickup_address, dropoff_address, package_description, created_at, payment_status, customer_reported_paid_at, payment_reference';
 
 const POLL_MS = 8_000;
 

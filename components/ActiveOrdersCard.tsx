@@ -11,9 +11,11 @@ type ActiveOrdersCardProps = {
   error: string | null;
   onNewOrder: () => void;
   onOpenOrder: (id: string) => void;
+  /** The customer has an unsettled order: no new orders until it is settled. */
+  blocked?: boolean;
 };
 
-export function ActiveOrdersCard({ orders, error, onNewOrder, onOpenOrder }: ActiveOrdersCardProps) {
+export function ActiveOrdersCard({ orders, error, onNewOrder, onOpenOrder, blocked = false }: ActiveOrdersCardProps) {
   return (
     <View style={styles.card}>
       <Text style={styles.eyebrow}>Deliveries</Text>
@@ -32,7 +34,7 @@ export function ActiveOrdersCard({ orders, error, onNewOrder, onOpenOrder }: Act
         </Pressable>
       ))}
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button title="Send a package" onPress={onNewOrder} />
+      <Button title="Send a package" onPress={onNewOrder} disabled={blocked} />
     </View>
   );
 }

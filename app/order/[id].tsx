@@ -4,6 +4,7 @@ import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
 
 import { AssignedRiderCard } from '@/components/AssignedRiderCard';
 import { Button } from '@/components/Button';
+import { CustomerPaymentCard } from '@/components/CustomerPaymentCard';
 import { PaymentNotice } from '@/components/PaymentNotice';
 import { Screen } from '@/components/Screen';
 import { colors, spacing } from '@/constants/theme';
@@ -96,6 +97,16 @@ export default function OrderStatusScreen() {
       {assigned.rider ? (
         <AssignedRiderCard rider={assigned.rider} location={assigned.location} status={order.status} />
       ) : null}
+
+      <CustomerPaymentCard
+        orderId={order.id}
+        status={order.status}
+        paymentStatus={order.payment_status}
+        reportedPaidAt={order.customer_reported_paid_at}
+        priceKobo={order.price_kobo}
+        paymentReference={order.payment_reference}
+        onChanged={reload}
+      />
 
       <View style={styles.card}>
         <Text style={styles.price}>{formatNaira(order.price_kobo)}</Text>

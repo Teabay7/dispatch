@@ -10,6 +10,7 @@ import { CurrentJobCard } from '@/components/CurrentJobCard';
 import { OfferCard } from '@/components/OfferCard';
 import { KycStatusCard } from '@/components/KycStatusCard';
 import { OnlineCard } from '@/components/OnlineCard';
+import { OrderBlockBanner } from '@/components/OrderBlockBanner';
 import { Screen } from '@/components/Screen';
 import { colors, spacing } from '@/constants/theme';
 import { kycCardState } from '@/lib/kyc';
@@ -19,6 +20,7 @@ import { supabase } from '@/lib/supabase';
 import { useRiderBankAccount } from '@/lib/useRiderBankAccount';
 import { useRiderCommission } from '@/lib/useRiderCommission';
 import { acceptOffer, declineOffer } from '@/lib/dispatchApi';
+import { useOrderBlock } from '@/lib/useDelivery';
 import { useActiveJob, useMyOffer } from '@/lib/useDispatch';
 import { useActiveOrders } from '@/lib/useOrders';
 import { useRiderKyc } from '@/lib/useRiderKyc';
@@ -40,6 +42,7 @@ export default function HomeScreen() {
   const commission = useRiderCommission(!!riderRole);
   const isCustomer = roles.some((r) => r.role === 'customer' && r.status === 'active');
   const activeOrders = useActiveOrders(isCustomer);
+  const orderBlock = useOrderBlock(isCustomer);
   const [signingOut, setSigningOut] = useState(false);
   const [addingRider, setAddingRider] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -97,6 +100,7 @@ export default function HomeScreen() {
   const reloadCommission = commission.reload;
   const reloadOrders = activeOrders.reload;
   const reloadJob = activeJob.reload;
+  const reloadBlock = orderBlock.reload;
   useFocusEffect(
     useCallback(() => {
       reloadKyc();
@@ -104,7 +108,8 @@ export default function HomeScreen() {
       reloadCommission();
       reloadOrders();
       reloadJob();
-    }, [reloadKyc, reloadBank, reloadCommission, reloadOrders, reloadJob]),
+      reloadBlock();
+    }, [reloadKyc, reloadBank, reloadCommission, reloadOrders, reloadJob, reloadBlock]),
   );
 
   async function becomeRider() {
@@ -136,12 +141,20 @@ export default function HomeScreen() {
       <Text style={styles.title}>Hello, {profile?.full_name}</Text>
       {profile?.phone ? <Text style={styles.muted}>{formatNigerianPhone(profile.phone)}</Text> : null}
 
+      {isCustomer && orderBlock.block ? (
+        <OrderBlockBanner
+          reason={orderBlock.block.reason}
+          onOpen={() => router.push({ pathname: '/order/[id]', params: { id: orderBlock.block!.order_id } })}
+        />
+      ) : null}
+
       {isCustomer ? (
         <ActiveOrdersCard
           orders={activeOrders.orders}
           error={activeOrders.error}
           onNewOrder={() => router.push('/order/new')}
           onOpenOrder={(id) => router.push({ pathname: '/order/[id]', params: { id } })}
+          blocked={!!orderBlock.block}
         />
       ) : null}
 
