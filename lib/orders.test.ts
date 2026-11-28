@@ -106,6 +106,10 @@ test('friendlyOrderError: known messages pass through, unknown text is never sho
     'The pickup point is outside the Dispatch service area.',
   );
   assert.equal(friendlyOrderError('This price has expired. Get a new price.'), 'This price has expired. Get a new price.');
+  assert.equal(
+    friendlyOrderError('Settle your unpaid order before placing a new one'),
+    'Settle your unpaid order before placing a new one.',
+  );
   assert.match(friendlyOrderError('relation "x" does not exist at Okafor Street'), /Something went wrong/);
   assert.match(friendlyOrderError(undefined), /Something went wrong/);
 });

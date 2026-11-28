@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 
 import { Button } from '@/components/Button';
+import { OrderBlockBanner } from '@/components/OrderBlockBanner';
 import { PaymentNotice } from '@/components/PaymentNotice';
 import { PlaceSearchField } from '@/components/PlaceSearchField';
 import { QuoteCard } from '@/components/QuoteCard';
@@ -24,6 +25,7 @@ import {
 import { createOrderFromQuote, requestQuote, type Quote } from '@/lib/ordersApi';
 import { normalizeNigerianPhone } from '@/lib/phone';
 import { useSession } from '@/lib/session';
+import { useOrderBlock } from '@/lib/useDelivery';
 
 export default function NewOrderScreen() {
   const { roles } = useSession();
@@ -43,6 +45,7 @@ export default function NewOrderScreen() {
   const [busy, setBusy] = useState<'quote' | 'confirm' | null>(null);
   const [locating, setLocating] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const orderBlock = useOrderBlock(isCustomer);
 
   // Keep the "price held for N minutes" line current.
   useEffect(() => {
@@ -130,6 +133,18 @@ export default function NewOrderScreen() {
   }
 
   const minutesLeft = quote ? quoteMinutesLeft(quote.expiresAt, now) : 0;
+
+  if (orderBlock.block) {
+    return (
+      <Screen>
+        <OrderBlockBanner
+          reason={orderBlock.block.reason}
+          onOpen={() => router.replace({ pathname: '/order/[id]', params: { id: orderBlock.block!.order_id } })}
+        />
+        <Button title="Back to home" variant="secondary" onPress={() => router.replace('/')} />
+      </Screen>
+    );
+  }
 
   return (
     <Screen>

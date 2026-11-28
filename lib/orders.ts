@@ -148,6 +148,7 @@ const SAFE_MESSAGES = [
   'This price has already been used for an order',
   'This price has expired. Get a new price.',
   'You have reached the limit of active orders. Wait for one to finish or cancel it.',
+  'Settle your unpaid order before placing a new one',
   'This order can no longer be cancelled in the app',
   'We could not find one of those places. Choose it again.',
   'Place search is not available right now. Try again.',

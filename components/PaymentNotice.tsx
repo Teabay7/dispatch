@@ -8,8 +8,9 @@ export function PaymentNotice() {
     <View style={styles.box} accessibilityRole="text">
       <Text style={styles.title}>You pay the rider directly</Text>
       <Text style={styles.body}>
-        When your package is delivered, pay the rider by bank transfer into the account shown in the app. Dispatch does
-        not take any payment in the app. Never pay before the rider arrives.
+        When the rider arrives at the drop-off, pay them by bank transfer into the account shown in the app. They hand
+        over the package once they see your payment. Dispatch does not take any payment in the app. Never pay before the
+        rider arrives.
       </Text>
     </View>
   );

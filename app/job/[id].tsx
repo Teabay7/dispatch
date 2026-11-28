@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
+import { RiderPaymentPanel } from '@/components/RiderPaymentPanel';
 import { Screen } from '@/components/Screen';
 import { colors, spacing } from '@/constants/theme';
 import { formatNaira } from '@/lib/commission';
@@ -12,8 +13,10 @@ import {
   nextJobAction,
   RIDER_CANCEL_REASONS,
   riderCanCancel,
+  type JobStep,
   type RiderCancelReason,
 } from '@/lib/dispatch';
+import { riderDeliveryStep, type PaymentStatus, type RiderDeliveryStep } from '@/lib/delivery';
 import { getContactDetails, markArrived, markPickedUp, riderCancelJob, type ContactDetails } from '@/lib/dispatchApi';
 import { formatDistance, type OrderStatus } from '@/lib/orders';
 import { formatNigerianPhone } from '@/lib/phone';
@@ -32,10 +35,13 @@ type Job = {
   package_description: string | null;
   price_kobo: number;
   distance_m: number | null;
+  payment_status: PaymentStatus;
+  customer_reported_paid_at: string | null;
+  payment_reference: string | null;
 };
 
 const COLUMNS =
-  'id, status, arrived_pickup_at, pickup_address, pickup_lat, pickup_lng, dropoff_address, dropoff_lat, dropoff_lng, package_description, price_kobo, distance_m';
+  'id, status, arrived_pickup_at, pickup_address, pickup_lat, pickup_lng, dropoff_address, dropoff_lat, dropoff_lng, package_description, price_kobo, distance_m, payment_status, customer_reported_paid_at, payment_reference';
 
 export default function RiderJobScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -89,6 +95,7 @@ export default function RiderJobScreen() {
   }
 
   const step = jobStep(job.status, job.arrived_pickup_at);
+  const delivery = riderDeliveryStep(job.status, job.payment_status);
   const action = nextJobAction(step);
 
   async function doAction() {
@@ -135,10 +142,8 @@ export default function RiderJobScreen() {
     <Screen>
       <View style={styles.card}>
         <Text style={styles.eyebrow}>Your job</Text>
-        <Text style={styles.title}>
-          {step === 'accepted' ? 'Go to the pickup' : step === 'arrived' ? 'Collect the package' : step === 'picked_up' ? 'Deliver the package' : 'Job ended'}
-        </Text>
-        <Steps step={step} />
+        <Text style={styles.title}>{jobTitle(step, delivery, job.status)}</Text>
+        <Steps step={step} delivery={delivery} />
         <Text style={styles.price}>{formatNaira(job.price_kobo)}</Text>
         {job.distance_m ? <Text style={styles.muted}>Trip {formatDistance(job.distance_m)}</Text> : null}
       </View>
@@ -172,8 +177,29 @@ export default function RiderJobScreen() {
       ) : null}
 
       {action ? <Button title={action.label} onPress={doAction} loading={busy} /> : null}
-      {step === 'picked_up' ? (
-        <Text style={styles.muted}>Delivery and payment confirmation come in the next app update. Dispatch will complete this job for now.</Text>
+      <RiderPaymentPanel
+        orderId={job.id}
+        status={job.status}
+        paymentStatus={job.payment_status}
+        reportedPaidAt={job.customer_reported_paid_at}
+        priceKobo={job.price_kobo}
+        paymentReference={job.payment_reference}
+        onChanged={reload}
+      />
+      {job.status === 'delivered' || job.status === 'completed' ? (
+        <View style={styles.card}>
+          <Text style={styles.body}>
+            Delivered. You keep the full {formatNaira(job.price_kobo)}; this trip counts towards your commission cycle.
+          </Text>
+          <Button title="Back to home" onPress={() => router.replace('/')} />
+        </View>
+      ) : job.status === 'payment_failed' ? (
+        <View style={styles.card}>
+          <Text style={styles.body}>
+            Marked unpaid. Take the package back to the pickup point. If the customer pays later, Dispatch will record it.
+          </Text>
+          <Button title="Back to home" onPress={() => router.replace('/')} />
+        </View>
       ) : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -196,10 +222,29 @@ export default function RiderJobScreen() {
   );
 }
 
-function Steps({ step }: { step: ReturnType<typeof jobStep> }) {
-  const order = ['accepted', 'arrived', 'picked_up'] as const;
-  const labels = { accepted: 'Accepted', arrived: 'At pickup', picked_up: 'Picked up' };
-  const current = order.indexOf(step as (typeof order)[number]);
+function jobTitle(step: JobStep, delivery: RiderDeliveryStep, status: OrderStatus): string {
+  if (step === 'accepted') return 'Go to the pickup';
+  if (step === 'arrived') return 'Collect the package';
+  if (step === 'picked_up') {
+    if (delivery === 'awaiting_payment') return 'Collect the payment';
+    if (delivery === 'handover') return 'Hand over the package';
+    return 'Deliver the package';
+  }
+  if (status === 'delivered' || status === 'completed') return 'Delivered';
+  if (status === 'payment_failed') return 'Not delivered: unpaid';
+  return 'Job ended';
+}
+
+function Steps({ step, delivery }: { step: JobStep; delivery: RiderDeliveryStep }) {
+  const order = ['accepted', 'arrived', 'picked_up', 'at_dropoff', 'paid'] as const;
+  const labels = { accepted: 'Accepted', arrived: 'At pickup', picked_up: 'Picked up', at_dropoff: 'At drop-off', paid: 'Paid' };
+  const key =
+    step === 'picked_up' && delivery === 'awaiting_payment'
+      ? 'at_dropoff'
+      : step === 'picked_up' && delivery === 'handover'
+        ? 'paid'
+        : step;
+  const current = order.indexOf(key as (typeof order)[number]);
   return (
     <View style={styles.steps}>
       {order.map((s, i) => (
