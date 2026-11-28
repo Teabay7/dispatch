@@ -182,7 +182,11 @@ Privacy:
 - Do not copy rider positions out of the dashboard.
 - Do not share screenshots that show them.
 
-## 4. For the dispatch feature (later)
+## 4. Dispatch
+
+Dispatch is built: see `dispatch-admin.md`. It uses the rule below (a fresh location,
+not just `is_online`) in `rider_can_take_job()`.
+
 
 When picking riders, never rely on `is_online` alone. Also require a fresh location,
 so a stale rider is never offered an order between sweeps:

@@ -2,20 +2,26 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
 
+import { AssignedRiderCard } from '@/components/AssignedRiderCard';
 import { Button } from '@/components/Button';
 import { PaymentNotice } from '@/components/PaymentNotice';
 import { Screen } from '@/components/Screen';
 import { colors, spacing } from '@/constants/theme';
 import { formatNaira } from '@/lib/commission';
+import { customerCancelMode, customerCancelWarning } from '@/lib/dispatch';
+import { retryDispatch } from '@/lib/dispatchApi';
 import { canCustomerCancel, formatDistance, isActiveStatus, orderStatusView } from '@/lib/orders';
 import { cancelOrder } from '@/lib/ordersApi';
+import { useAssignedRider } from '@/lib/useDispatch';
 import { formatNigerianPhone } from '@/lib/phone';
 import { useOrder } from '@/lib/useOrders';
 
 export default function OrderStatusScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { order, contact, loaded, error, reload } = useOrder(id);
+  const assigned = useAssignedRider(id, order?.status);
   const [cancelling, setCancelling] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
   useFocusEffect(
@@ -54,11 +60,24 @@ export default function OrderStatusScreen() {
   }
 
   function askCancel() {
-    Alert.alert('Cancel this order?', 'You can cancel for free until a rider accepts.', [
+    if (!order) return;
+    Alert.alert('Cancel this order?', customerCancelWarning(customerCancelMode(order.status)), [
       { text: 'Keep order', style: 'cancel' },
       { text: 'Cancel order', style: 'destructive', onPress: doCancel },
     ]);
   }
+
+  async function doRetry() {
+    if (!order) return;
+    setRetrying(true);
+    setActionError(null);
+    const result = await retryDispatch(order.id);
+    setRetrying(false);
+    if (result.error !== null) setActionError(result.error);
+    await reload();
+  }
+
+  const cancelMode = customerCancelMode(order.status);
 
   return (
     <Screen>
@@ -69,7 +88,14 @@ export default function OrderStatusScreen() {
           <Text style={styles.title}>{view.title}</Text>
         </View>
         <Text style={styles.body}>{view.body}</Text>
+        {order.status === 'no_rider_found' ? (
+          <Button title="Search again" onPress={doRetry} loading={retrying} />
+        ) : null}
       </View>
+
+      {assigned.rider ? (
+        <AssignedRiderCard rider={assigned.rider} location={assigned.location} status={order.status} />
+      ) : null}
 
       <View style={styles.card}>
         <Text style={styles.price}>{formatNaira(order.price_kobo)}</Text>
@@ -102,7 +128,12 @@ export default function OrderStatusScreen() {
       {isActiveStatus(order.status) ? <PaymentNotice /> : null}
 
       {canCustomerCancel(order.status) ? (
-        <Button title="Cancel order" variant="secondary" onPress={askCancel} loading={cancelling} />
+        <>
+          <Button title="Cancel order" variant="secondary" onPress={askCancel} loading={cancelling} />
+          <Text style={styles.muted}>{customerCancelWarning(cancelMode)}</Text>
+        </>
+      ) : cancelMode === 'support_only' ? (
+        <Text style={styles.muted}>{customerCancelWarning(cancelMode)}</Text>
       ) : null}
       {actionError ? <Text style={styles.error}>{actionError}</Text> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -121,4 +152,5 @@ const styles = StyleSheet.create({
   label: { fontSize: 12, fontWeight: '700', color: colors.muted, textTransform: 'uppercase', marginTop: spacing.sm },
   body: { fontSize: 15, color: colors.text },
   error: { color: colors.danger, fontSize: 14 },
+  muted: { fontSize: 13, color: colors.muted },
 });

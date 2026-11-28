@@ -295,8 +295,8 @@ SELECT is(
 SELECT is(
   (SELECT o.status::text || ' | ' || o.package_description || ' | ' || o.quote_id::text || ' | ' || o.priced_with_fallback::text
      FROM public.orders o WHERE o.id = (SELECT id FROM o1)),
-  'created | Box of documents | ' || (SELECT id FROM q1)::text || ' | false',
-  'a new order is waiting (created), with the package and its quote'
+  'rider_requested | Box of documents | ' || (SELECT id FROM q1)::text || ' | false',
+  'a new order starts searching for a rider at once, with the package and its quote'
 );
 
 SELECT is(
@@ -491,14 +491,6 @@ SELECT throws_ok(
   'another rider cannot get the contact details'
 );
 
-SELECT set_config('request.jwt.claims',
-  '{"sub":"00000000-0000-0000-0000-00000000a101","role":"authenticated"}', true);
-
-SELECT throws_ok(
-  $$SELECT public.cancel_order((SELECT id FROM o2))$$,
-  'P0001', 'This order can no longer be cancelled in the app',
-  'a customer cannot cancel after a rider accepts'
-);
 
 -- ---------------------------------------------------------------------------
 -- Address and price lock, for everyone
@@ -536,6 +528,17 @@ SELECT lives_ok(
   $$UPDATE public.orders SET status = 'picked_up' WHERE id = (SELECT id FROM o2)$$,
   'the server can still move the order along'
 );
+
+SELECT set_config('request.jwt.claims',
+  '{"sub":"00000000-0000-0000-0000-00000000a101","role":"authenticated"}', true);
+SET LOCAL ROLE authenticated;
+SELECT throws_ok(
+  $$SELECT public.cancel_order((SELECT id FROM o2))$$,
+  'P0001', 'After pickup, only Dispatch support can cancel',
+  'a customer cannot cancel after pickup'
+);
+RESET ROLE;
+SELECT set_config('request.jwt.claims', '{}', true);
 
 -- ---------------------------------------------------------------------------
 -- Delivering charges the commission fixed at quote time

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { ACTIVE_STATUSES, isActiveStatus, type OrderStatus } from '@/lib/orders';
+import { HOME_ORDER_STATUSES, isActiveStatus, type OrderStatus } from '@/lib/orders';
 import { useSession } from '@/lib/session';
 import { supabase } from '@/lib/supabase';
 
@@ -21,7 +21,7 @@ export type OrderContact = { receiver_name: string; receiver_phone: string };
 const ORDER_COLUMNS =
   'id, status, price_kobo, distance_m, priced_with_fallback, pickup_address, dropoff_address, package_description, created_at';
 
-const POLL_MS = 15_000;
+const POLL_MS = 8_000;
 
 /** The customer's orders that have not ended, newest first (RLS: only their own). */
 export function useActiveOrders(enabled: boolean) {
@@ -36,7 +36,7 @@ export function useActiveOrders(enabled: boolean) {
       .from('orders')
       .select(ORDER_COLUMNS)
       .eq('customer_id', userId)
-      .in('status', ACTIVE_STATUSES)
+      .in('status', HOME_ORDER_STATUSES)
       .order('created_at', { ascending: false });
     if (queryError) {
       setError('We could not load your orders. Check your connection and try again.');
@@ -80,7 +80,7 @@ export function useOrder(orderId: string | undefined) {
     reload();
   }, [reload]);
 
-  // Dispatch (next feature) will push updates; until then, check every 15 s.
+  // Polling (no Realtime): check every 8 s while the order is active.
   const active = order ? isActiveStatus(order.status) : false;
   useEffect(() => {
     if (!active) return;

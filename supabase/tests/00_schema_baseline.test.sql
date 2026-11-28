@@ -23,7 +23,7 @@ SELECT tables_are(
     'order_events', 'ratings', 'app_settings', 'rider_bank_accounts',
     'commission_cycles', 'commission_entries', 'company_payment_account',
     'company_payment_account_changes', 'service_areas', 'api_usage', 'order_quotes',
-    'order_contacts'
+    'order_contacts', 'dispatch_offers', 'cancellation_events', 'admin_review_flags'
   ],
   'public schema has exactly the expected tables'
 );

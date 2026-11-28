@@ -20,9 +20,18 @@ export function isActiveStatus(status: OrderStatus): boolean {
   return ACTIVE_STATUSES.includes(status);
 }
 
-/** The customer can cancel in the app only until a rider accepts (SPEC 10.6). */
+/**
+ * Orders listed on home: the active ones, plus searches that found no rider, so the
+ * customer can always get back to "Search again" or cancel.
+ */
+export const HOME_ORDER_STATUSES: OrderStatus[] = [...ACTIVE_STATUSES, 'no_rider_found'];
+
+/**
+ * The customer can cancel in the app until pickup (SPEC 10.6): free until a rider
+ * accepts, counted as a late cancel after that. After pickup only support can.
+ */
 export function canCustomerCancel(status: OrderStatus): boolean {
-  return status === 'created' || status === 'rider_requested';
+  return status === 'created' || status === 'rider_requested' || status === 'no_rider_found' || status === 'accepted';
 }
 
 export type StatusView = { title: string; body: string; tone: 'waiting' | 'active' | 'done' | 'stopped' };
@@ -33,7 +42,7 @@ export function orderStatusView(status: OrderStatus): StatusView {
     case 'rider_requested':
       return { title: 'Searching for a rider', body: 'We will show you the rider as soon as one accepts.', tone: 'waiting' };
     case 'accepted':
-      return { title: 'A rider is on the way', body: 'The rider is heading to the pickup point.', tone: 'active' };
+      return { title: 'Rider found', body: 'Your rider is heading to the pickup point.', tone: 'active' };
     case 'picked_up':
       return { title: 'Package picked up', body: 'The rider is taking your package to the drop-off point.', tone: 'active' };
     case 'delivered':
@@ -44,7 +53,7 @@ export function orderStatusView(status: OrderStatus): StatusView {
     case 'cancelled_by_rider':
       return { title: 'Cancelled', body: 'This order was cancelled.', tone: 'stopped' };
     case 'no_rider_found':
-      return { title: 'No rider found', body: 'No rider was available. Please try again later.', tone: 'stopped' };
+      return { title: 'No rider found', body: 'No rider was available nearby. You can search again.', tone: 'stopped' };
     case 'payment_failed':
       return { title: 'Not delivered', body: 'The delivery was not completed because payment was not made.', tone: 'stopped' };
   }

@@ -6,6 +6,7 @@ import {
   formatDistance,
   friendlyOrderError,
   hasErrors,
+  HOME_ORDER_STATUSES,
   isActiveStatus,
   isQuoteExpired,
   newSessionToken,
@@ -47,14 +48,26 @@ test('status screens: waiting, on the way, done, stopped', () => {
   for (const s of all) assert.ok(orderStatusView(s).title, s);
 });
 
-test('the customer can cancel only until a rider accepts', () => {
+test('the customer can cancel in the app until pickup', () => {
   assert.equal(canCustomerCancel('created'), true);
   assert.equal(canCustomerCancel('rider_requested'), true);
-  assert.equal(canCustomerCancel('accepted'), false);
+  assert.equal(canCustomerCancel('no_rider_found'), true);
+  assert.equal(canCustomerCancel('accepted'), true);
   assert.equal(canCustomerCancel('picked_up'), false);
   assert.equal(canCustomerCancel('cancelled_by_customer'), false);
   assert.equal(isActiveStatus('picked_up'), true);
   assert.equal(isActiveStatus('delivered'), false);
+});
+
+test('home lists active orders and no-rider-found orders, so Search again stays reachable', () => {
+  for (const s of ['created', 'rider_requested', 'accepted', 'picked_up', 'no_rider_found'] as OrderStatus[]) {
+    assert.ok(HOME_ORDER_STATUSES.includes(s), s);
+  }
+  for (const s of ['delivered', 'completed', 'cancelled_by_customer', 'cancelled_by_rider', 'payment_failed'] as OrderStatus[]) {
+    assert.ok(!HOME_ORDER_STATUSES.includes(s), s);
+  }
+  // Still not "active": the order screen stops polling once the search has ended.
+  assert.equal(isActiveStatus('no_rider_found'), false);
 });
 
 test('the quote request sends place ids or the device location, never an address or price', () => {
